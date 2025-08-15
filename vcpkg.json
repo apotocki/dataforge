@@ -1,0 +1,13 @@
+{
+  "name": "dataforge",
+  "version": "0.1.0",
+  "description": "Header-only library for byte sequence transformations with tests",
+  "dependencies": [
+    "zlib",
+    "icu",
+    "bzip2",
+    "lz4",
+    "liblzma",
+    "gtest"
+  ]
+}
