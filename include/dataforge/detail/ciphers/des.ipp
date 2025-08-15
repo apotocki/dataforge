@@ -198,8 +198,8 @@ namespace dataforge {
 template <typename DerivedT>
 template <typename QrkT>
 des_cipher<DerivedT>::des_cipher(QrkT const& q)
-    : levels_{ (uint_least8_t)q.levels }
-    , ed_mode_{ static_cast<uint_least8_t>(q.ed_mode ? 1 : 0) }
+    : ed_mode_{ static_cast<uint_least8_t>(q.ed_mode ? 1 : 0) }
+    , levels_{ (uint_least8_t)q.levels }
 {}
 
 template <typename DerivedT>

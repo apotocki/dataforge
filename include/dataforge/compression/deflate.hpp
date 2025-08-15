@@ -22,11 +22,10 @@ struct deflate_qrk : cvt_qrk<ErrorHandlerT>
 
     explicit deflate_qrk(bool gzip_val, uint_least32_t bsz, int clevel = -1, ErrorHandlerT const& eh = ErrorHandlerT{})
         : cvt_qrk_t{ eh }
-        , buffer_size{ bsz }
         , compression_level{ clevel }
+        , buffer_size{ bsz }
         , gzip{ gzip_val ? 1u : 0u }
-    {
-    }
+    {}
 };
 
 template <typename ErrorHandlerT>
@@ -41,8 +40,7 @@ struct inflate_qrk : int_qrk<8, ErrorHandlerT>
         : cvt_quark_t{ eh }
         , buffer_size{ bsz }
         , gzip{ gzip_val ? 1u : 0u }
-    {
-    }
+    {}
 };
 
 inline deflate_qrk<throw_error_handler> deflated(bool gzip = false, uint_least32_t buffer_size = 65536, int compression_level = -1)

@@ -1,4 +1,5 @@
 [![Windows MSVC Tests](https://github.com/apotocki/dataforge/actions/workflows/msvc-tests.yml/badge.svg)](https://github.com/apotocki/dataforge/actions/workflows/msvc-tests.yml)
+[![Linux GCC Tests](https://github.com/apotocki/dataforge/actions/workflows/linux-tests.yml/badge.svg)](https://github.com/apotocki/dataforge/actions/workflows/linux-tests.yml)
 
 # DataForge
 

@@ -30,11 +30,11 @@ struct rc2_qrk : cvt_qrk<ErrorHandlerT>
     template <SpanOfIntegrals<8> KT, SpanOfIntegrals<8> IVT, typename ... EHArgTs>
     rc2_qrk(KT key_val, size_t t1_val, cipher_mode_type cmt_val, IVT iv_val, padding_type pt_val, EHArgTs&& ... ehargs)
         : cvt_qrk_t{ std::forward<EHArgTs>(ehargs) ... }
+        , effective_keylength{ t1_val }
         , key{ reinterpret_cast<const unsigned char*>(key_val.data()), key_val.size() }
         , iv{ reinterpret_cast<const unsigned char*>(iv_val.data()), iv_val.size() }
         , pt { pt_val }
         , cmt { cmt_val }
-        , effective_keylength{ t1_val }
     {
         assert(t1_val <= MaxEffectiveKeyLengthV);
         assert(key.size() <= (MaxEffectiveKeyLengthV + 7) / 8);

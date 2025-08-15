@@ -69,7 +69,7 @@ public:
     }
 
     template <typename ConsumerT>
-    void finish(ConsumerT cons)
+    void finish(ConsumerT)
     {
         if (bit % 8 != 0) {
             on_error("EOF, but the padding character is expected.", *this);

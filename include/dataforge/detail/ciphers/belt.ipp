@@ -49,7 +49,7 @@ namespace dataforge {
     
 template <typename DerivedT>
 template <typename QrkT>
-belt_cipher<DerivedT>::belt_cipher(QrkT const& q)
+belt_cipher<DerivedT>::belt_cipher(QrkT const&)
 {
 
 }

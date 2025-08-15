@@ -22,7 +22,7 @@ struct md6_qrk : cvt_qrk<ErrorHandlerT>
     template <SpanOfIntegrals<8> KT = cbyte_span_t>
     explicit md6_qrk(int bitsize_val, int rounds_val = 0, KT key_val = {}, int l_val = -1, ErrorHandlerT const& eh = ErrorHandlerT{})
         : cvt_qrk<ErrorHandlerT>{ eh }, bitsize{ bitsize_val }, rounds{ rounds_val }
-        , key{ key_val }, l{ l_val }
+        , l{ l_val }, key{ key_val }
     {}
 };
 

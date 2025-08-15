@@ -58,7 +58,7 @@ public:
     }
 
     template <typename ConsumerT>
-    void finish(ConsumerT cons)
+    void finish(ConsumerT)
     {
         if (cache) {
             on_error("unfinished base16 sequence", *this);

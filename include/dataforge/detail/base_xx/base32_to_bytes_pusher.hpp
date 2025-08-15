@@ -30,8 +30,8 @@ public:
     template <IntegralBasedQuark<8> DestT>
     base32_to_bytes_pusher(base32_qrk<ErrorHandlerT> const& srctag, DestT const&)
         : base_t{ srctag }
-        , bit{0}, cache{0}
         , matrix{ srctag.matrix }
+        , bit{ 0 }, cache{ 0 }
         , padding_character{ srctag.padding_character }
     {
         if (matrix.empty()) {
@@ -89,7 +89,7 @@ public:
     }
 
     template <typename ConsumerT>
-    void finish(ConsumerT cons)
+    void finish(ConsumerT)
     {
         if (padding_character && bit % 8 != 0) {
             on_error("EOF, but the padding character is expected.", *this);

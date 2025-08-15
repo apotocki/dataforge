@@ -30,7 +30,7 @@ class utf16_to_utf7
 public:
     template <typename SomeErrorHandlerT>
     explicit utf16_to_utf7(utf16_qrk<SomeErrorHandlerT> const& quark, utf7_qrk<ErrorHandlerT> const&)
-        : base_t{ quark }, wcached{0}, cache{0}, bit{0}, shifting{0}, opt{0}
+        : base_t{ quark }, cache{ 0 }, bit{ 0 }, shifting{ 0 }, opt{ 0 }, wcached{ 0 }
     {}
 
     template <SpanOf<char16_t> SpanT, typename ConsumerT>

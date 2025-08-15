@@ -24,7 +24,7 @@ public:
     using output_element_type = ET;
 
     template <typename SrcT>
-    buffer_pusher(SrcT const& quark, buffer_qrk<ET> const& gt)
+    buffer_pusher(SrcT const&, buffer_qrk<ET> const& gt)
         : buffer_size{ gt.buffer_sz }
     {
         buffer.reset(new ET[buffer_size], [](ET* p) { delete[] p; });

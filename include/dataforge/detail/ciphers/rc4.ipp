@@ -28,7 +28,7 @@ inline void rc4_impl::destroy()
 }
 
 inline rc4_impl::rc4_impl(std::span<const unsigned char> key, uint_least8_t n, size_t skip_bits) noexcept
-	: key_{ key }, n_{ (uint_least8_t)n }, s_sz_{ ((uint_least32_t)1) << n }, skip_bits_ { skip_bits }
+	: key_{ key }, skip_bits_{ skip_bits }, s_sz_{ ((uint_least32_t)1) << n }, n_{ (uint_least8_t)n }
 {
 	reset();
 }

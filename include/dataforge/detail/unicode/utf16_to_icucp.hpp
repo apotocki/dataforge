@@ -24,7 +24,7 @@ class utf16_to_icucp
 
     UConverter* conv_;
     
-    static void callback(const void* context, UConverterFromUnicodeArgs* args, const UChar* codeUnits, int32_t length, UChar32 codePoint, UConverterCallbackReason reason, UErrorCode* pErrorCode)
+    static void callback(const void* context, UConverterFromUnicodeArgs* /*args*/, const UChar* /*codeUnits*/, int32_t /*length*/, UChar32 codePoint, UConverterCallbackReason /*reason*/, UErrorCode* pErrorCode)
     {
         utf16_to_icucp& h = *reinterpret_cast<utf16_to_icucp*>(const_cast<void*>(context));
         h.on_error(codePoint, pErrorCode);
@@ -201,7 +201,7 @@ private:
     }
 
     template <typename ConsumerT>
-    void do_push(std::span<const char16_t> ivals, bool flush, ConsumerT && cons)
+    void do_push(std::span<const char16_t> ivals, bool /* flush */, ConsumerT && cons)
     {
         UErrorCode errCode;
         do {

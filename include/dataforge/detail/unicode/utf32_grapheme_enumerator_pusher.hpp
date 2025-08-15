@@ -115,10 +115,11 @@ class utf32_grapheme_enumerator_pusher : public generic_pusher<void>
 
 public:
     template <typename ErrorHandlerT>
-    explicit utf32_grapheme_enumerator_pusher(utf32_qrk<ErrorHandlerT> const& quark, enumerated_graphemes_qrk const&)
-        : sot {1}
-        , extended_pictographic_extend_times{0}, odd_number_of_RI{0}
-        , prev_prop {0}
+    explicit utf32_grapheme_enumerator_pusher(utf32_qrk<ErrorHandlerT> const&, enumerated_graphemes_qrk const&)
+        : prev_prop{ 0 }
+        , sot{ 1 }
+        , extended_pictographic_extend_times{ 0 }
+        , odd_number_of_RI{ 0 }
     {}
 
     inline void update_context_flags(unicode_detail::code_point_property prev)
@@ -177,7 +178,7 @@ public:
     }
 
     template <typename ConsumerT>
-    void finish(ConsumerT cons)
+    inline void finish(ConsumerT&&)
     {
         reset();
     }

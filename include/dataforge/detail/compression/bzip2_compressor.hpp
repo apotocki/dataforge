@@ -109,7 +109,9 @@ public:
             if (input.empty()) {
                 input = span_cast<const unsigned char>(p());
                 if (input.empty()) {
-                    int ret = BZ2_bzCompress(&state_->strm_, BZ_FINISH);
+                    if (int ret = BZ2_bzCompress(&state_->strm_, BZ_FINISH); ret < 0) {
+                        on_error("bzip2 compressor error", ret, *this);
+                    }
                     auto us = state_->used_span();
                     state_->reset_buffer();
                     return us;

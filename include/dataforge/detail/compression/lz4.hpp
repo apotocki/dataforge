@@ -95,7 +95,7 @@ struct state
 
 private:
     explicit state(size_t bsz, LZ4F_preferences_t const& prefs, bool compressing)
-        : buffer_size{ bsz }, prefs_{ prefs }, compressing_{ compressing }
+        : prefs_{ prefs }, buffer_size{ bsz }, compressing_{ compressing }
         , processing_finished_{0}, context_ready_{0}
     {
         if (compressing) { ctx_ = nullptr; } else { ectx_ = nullptr; }

@@ -23,7 +23,7 @@ class utf8_to_utf32
 public:
     template <typename SomeErrorHandlerT>
     explicit utf8_to_utf32(utf8_qrk<ErrorHandlerT> const& quark, utf32_qrk<SomeErrorHandlerT> const&)
-        : base_t{ quark }, data{0}, num{0}
+        : base_t{ quark }, num{ 0 }, data{ 0 }
     {}
 
     void reset()
@@ -69,7 +69,7 @@ public:
     }
 
     template <typename ConsumerT>
-    void finish(ConsumerT cons)
+    void finish(ConsumerT&&)
     {
         if (num) {
             on_error("unfinished utf8 sequence", *this);

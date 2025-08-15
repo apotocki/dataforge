@@ -85,7 +85,7 @@ md6_error_code md6_full_init(md6_state_general<ConfT>* st,       /* uninitialize
 ) noexcept
 { /* check that md6_full_init input parameters make some sense */
 	if (!st) return md6_error_code::MD6_NULLSTATE;
-	if (key && ((keylen < 0) || (keylen > ConfT::md6_k * (ConfT::md6_w / 8))))
+	if (key && (keylen > ConfT::md6_k * (ConfT::md6_w / 8)))
 		return md6_error_code::MD6_BADKEYLEN;
 	if (d < 1 || d > 512 || d > ConfT::md6_w * ConfT::md6_c / 2) return md6_error_code::MD6_BADHASHLEN;
 
@@ -313,7 +313,7 @@ md6_error_code md6_standard_compress(typename ConfT::md6_word* C,
 	if ((r < 0) || (r > ConfT::md6_max_r)) return md6_error_code::MD6_BAD_r;
 	if ((L < 0) || (L > 255)) return md6_error_code::MD6_BAD_L;
 	if ((ell < 0) || (ell > 255)) return md6_error_code::MD6_BAD_ELL;
-	if ((p < 0) || (p > ConfT::md6_b * ConfT::md6_w)) return md6_error_code::MD6_BAD_p;
+	if (p > ConfT::md6_b * ConfT::md6_w) return md6_error_code::MD6_BAD_p;
 	if ((d <= 0) || (d > ConfT::md6_c * ConfT::md6_w / 2)) return md6_error_code::MD6_BADHASHLEN;
 	if (!K) return md6_error_code::MD6_NULL_K;
 	if (!Q) return md6_error_code::MD6_NULL_Q;
@@ -346,8 +346,9 @@ md6_error_code md6_standard_compress(typename ConfT::md6_word* C,
 inline void append_bits(unsigned char* dest, uint64_t destlen,
 	const unsigned char* src, uint64_t srclen) noexcept
 {
-	int i, accumlen;
+	uint64_t i;
 	uint16_t accum;
+	int accumlen;
 
 	if (srclen == 0) return;
 

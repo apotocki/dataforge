@@ -40,8 +40,8 @@ inline belt_hash_impl::belt_hash_impl()
 }
 
 template <typename InitQuarkT>
-belt_hash_impl::belt_hash_impl(InitQuarkT const& dt)
-    : belt_hash_impl { }
+belt_hash_impl::belt_hash_impl(InitQuarkT const&)
+    : belt_hash_impl{}
 {}
 
 inline void belt_hash_impl::reset() noexcept

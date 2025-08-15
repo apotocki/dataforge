@@ -25,7 +25,7 @@ class utf8_to_utf16
 public:
     template <typename SomeErrorHandlerT>
     explicit utf8_to_utf16(utf8_qrk<ErrorHandlerT> const& quark, utf16_qrk<SomeErrorHandlerT> const&)
-        : base_t{ quark }, data{0}, num{0}
+        : base_t{ quark }, num{ 0 }, data{ 0 }
     {}
 
     template <CompatibleSpan<char8_t> SpanT, typename ConsumerT>
@@ -82,7 +82,7 @@ public:
     }
 
     template <typename ConsumerT>
-    void finish(ConsumerT)
+    void finish(ConsumerT&&)
     {
         if (num) {
             on_error("unfinished utf8 sequence", *this);
