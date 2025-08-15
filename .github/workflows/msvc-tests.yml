@@ -17,11 +17,12 @@ jobs:
       - name: Setup Vcpkg
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+          vcpkgDirectory: '${{ runner.temp }}/vcpkg'
           vcpkgJsonGlob: '**/vcpkg.json'
+          runVcpkgInstall: true
 
       - name: Configure VCPKG_ROOT env var
-        run: echo "VCPKG_ROOT=${{ github.workspace }}/vcpkg" >> $env:GITHUB_ENV
+        run: echo "VCPKG_ROOT=${{ runner.temp }}/vcpkg" >> $env:GITHUB_ENV
 
       - name: Set up MSBuild
         uses: microsoft/setup-msbuild@v2
