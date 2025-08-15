@@ -18,8 +18,9 @@ jobs:
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+          cpkgGitCommitId: '${{ matrix.vcpkgCommitId }}'
           vcpkgJsonGlob: '**/vcpkg.json'
-
+          
       - name: Configure VCPKG_ROOT env var
         run: echo "VCPKG_ROOT=${{ github.workspace }}/vcpkg" >> $env:GITHUB_ENV
 
