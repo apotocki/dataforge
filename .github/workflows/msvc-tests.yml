@@ -17,17 +17,17 @@ jobs:
       - name: Setup Vcpkg
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgDirectory: '${{ runner.workspace }}/vcpkg'
+          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
           vcpkgJsonGlob: '**/vcpkg.json'
 
       - name: Configure VCPKG_ROOT env var
-        run: echo "VCPKG_ROOT=${{ runner.workspace }}/vcpkg" >> $env:GITHUB_ENV
+        run: echo "VCPKG_ROOT=${{ github.workspace }}/vcpkg" >> $env:GITHUB_ENV
 
       - name: Set up MSBuild
         uses: microsoft/setup-msbuild@v2
 
       - name: Build solution
-        run: msbuild msvc/dataforge.sln /p:Configuration=Release
+        run: msbuild msvc/dataforge_tests.sln /p:Configuration=Release
 
       - name: Run tests
         run: |
