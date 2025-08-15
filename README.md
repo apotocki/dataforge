@@ -1,3 +1,5 @@
+[![Windows MSVC Tests](https://github.com/apotocki/dataforge/actions/workflows/msvc-tests.yml/badge.svg)](https://github.com/apotocki/dataforge/actions/workflows/msvc-tests.yml)
+
 # DataForge
 
 **DataForge** is a modern C++20 header-only library for building declarative, composable data transformation pipelines.  
