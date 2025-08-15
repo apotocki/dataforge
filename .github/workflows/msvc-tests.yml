@@ -19,9 +19,10 @@ jobs:
 
       - name: Bootstrap vcpkg
         run: .\vcpkg\bootstrap-vcpkg.bat
-        env:
-            VCPKG_ROOT: ${{ github.workspace }}\vcpkg
-            
+        
+      - name: Configure VCPKG_ROOT env var
+        run: echo "VCPKG_ROOT=${{ github.workspace }}\vcpkg" >> $env:GITHUB_ENV
+                  
       - name: Set up MSBuild
         uses: microsoft/setup-msbuild@v2
 
