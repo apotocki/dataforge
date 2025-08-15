@@ -20,18 +20,18 @@ struct rc4_qrk : int_qrk<8, void>
     uint_least8_t n; // size of S block in bits: [1-16] (8 by default)
     
     template <Integral<8> KET, size_t EV>
-    explicit rc4_qrk(std::span<KET, EV> key_val, uint_least8_t nval = 8, size_t skipsz_val = 0)
+    inline explicit rc4_qrk(std::span<KET, EV> key_val, uint_least8_t nval = 8, size_t skipsz_val = 0)
         : key{ reinterpret_cast<const unsigned char*>(key_val.data()), key_val.size() }
-        , n { nval }
         , skipsz{ skipsz_val }
+        , n { nval }
     {
         assert(nval >= 1 && nval <= 16);
     }
 
-    explicit rc4_qrk(std::span<const unsigned char> key_val, uint_least8_t nval = 8, size_t skipsz_val = 0)
+    inline explicit rc4_qrk(std::span<const unsigned char> key_val, uint_least8_t nval = 8, size_t skipsz_val = 0)
         : key{ reinterpret_cast<const unsigned char*>(key_val.data()), key_val.size() }
-        , n{ nval }
         , skipsz{ skipsz_val }
+        , n{ nval }
     {
         assert(nval >= 1 && nval <= 16);
     }

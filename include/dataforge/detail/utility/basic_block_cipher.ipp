@@ -494,6 +494,7 @@ void basic_block_cipher<AlgoFactoryT, InQueueSzMultiplierV, AllocatorT>::finaliz
                 // here: oblock is (X(n) || r)
                 //std::memcpy(aux_begin(), oblock().data(), bytes_in_buf);
                 //xe_copy<8, algo_t::word_size>(oblock().data() + bytes_in_buf, bsz - bytes_in_buf, iblock_begin() + offset, bytes_in_buf);
+                [[fallthrough]];
             case cipher_mode_type::ECB:
                 std::memcpy(aux_begin(), oblock().data(), bytes_in_buf);
                 xe_copy<8, algo_t::word_size>(oblock().data() + bytes_in_buf, bsz - bytes_in_buf, iblock_begin() + offset, bytes_in_buf);
@@ -515,6 +516,7 @@ void basic_block_cipher<AlgoFactoryT, InQueueSzMultiplierV, AllocatorT>::finaliz
             
             break;
         }
+        [[fallthrough]];
     case padding_type::zero:
         cons(oblock());
         break;
@@ -576,6 +578,7 @@ std::span<const unsigned char> basic_block_cipher<AlgoFactoryT, InQueueSzMultipl
                     }
                     //std::memcpy(aux_begin(), oblock().data(), bytes_in_buf);
                     //xe_copy<8, algo_t::word_size>(oblock().data() + bytes_in_buf, bsz - bytes_in_buf, iblock_begin(), bytes_in_buf);
+                    [[fallthrough]];
                 case cipher_mode_type::ECB:
                     std::memcpy(aux_begin(), oblock().data(), bytes_in_buf);
                     xe_copy<8, algo_t::word_size>(oblock().data() + bytes_in_buf, bsz - bytes_in_buf, iblock_begin(), bytes_in_buf);
@@ -592,6 +595,7 @@ std::span<const unsigned char> basic_block_cipher<AlgoFactoryT, InQueueSzMultipl
                     return oblock().subspan(0, bytes_in_buf);
                 }
             }
+            [[fallthrough]];
         case padding_type::zero:
             oblock_ready = 0;
             finalization_stage = 15;
@@ -602,7 +606,9 @@ std::span<const unsigned char> basic_block_cipher<AlgoFactoryT, InQueueSzMultipl
             return check_pkcs(errh);
         default:
             errh.on_error("internal error: unexpected padding type value");
+            break;
         }
+        [[fallthrough]];
     case 1:
         finalization_stage = 15;
         return std::span{aux_begin(), bytes_in_buf};

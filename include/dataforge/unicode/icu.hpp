@@ -68,7 +68,7 @@ struct icu_basic_escaper_handler
         throw std::runtime_error(err);
     }
 
-    void operator()(std::string const& err, std::string enc, UErrorCode errCode) const
+    void operator()(std::string const& err, std::string const& enc, UErrorCode errCode) const
     {
         std::ostringstream errss;
         errss << err << ": '" << enc << "', error: " << (int)errCode;

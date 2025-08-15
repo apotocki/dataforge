@@ -57,7 +57,7 @@ public:
     }
 
     template <typename ConsumerT>
-    void finish(ConsumerT cons)
+    void finish(ConsumerT)
     {
         if (st) {
             on_error("unfinished utf16 sequence", *this);

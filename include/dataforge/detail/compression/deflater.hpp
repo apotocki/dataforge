@@ -109,7 +109,9 @@ public:
             if (input.empty()) {
                 input = span_cast<const unsigned char>(p());
                 if (input.empty()) {
-                    int ret = ::deflate(&state_->strm_, Z_FINISH);
+                    if (int ret = ::deflate(&state_->strm_, Z_FINISH); ret < 0) {
+                        on_error("deflate compressor error", ret, *this);
+                    }
                     auto us = state_->used_span();
                     state_->reset_buffer();
                     return us;

@@ -31,10 +31,10 @@ struct grouped_qrk : cvt_qrk<void>
         size_t rsz,
         RowDelimT rowdelim_value)
             : group_sz{ gsz }
+            , row_sz{ rsz }
             , prefix{ std::span{ reinterpret_cast<const ET*>(prefix_value.data()), prefix_value.size() } }
             , suffix{ std::span{ reinterpret_cast<const ET*>(suffix_value.data()), suffix_value.size() } }
             , delim{ std::span{ reinterpret_cast<const ET*>(delim_value.data()), delim_value.size() } }
-            , row_sz{ rsz }
             , rowdelim{ std::span{ reinterpret_cast<const ET*>(rowdelim_value.data()), rowdelim_value.size() } }
     {
         assert(gsz);

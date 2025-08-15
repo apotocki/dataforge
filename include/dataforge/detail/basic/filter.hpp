@@ -19,7 +19,7 @@ public:
     using output_element_type = ET;
 
     template <typename SrcT>
-    filter_pusher(SrcT const& quark, filter_qrk<ET, PredicateT> const& t)
+    filter_pusher(SrcT const&, filter_qrk<ET, PredicateT> const& t)
         : predicate { t.predicate }
     {}
 
@@ -80,11 +80,11 @@ public:
     }
 
     template <typename ConsumerT>
-    inline void flush(ConsumerT cons)
+    inline void flush(ConsumerT &&) noexcept
     {}
 
     template <typename ConsumerT>
-    inline void finish(ConsumerT && cons)
+    inline void finish(ConsumerT &&) noexcept
     {}
 
     inline void reset() noexcept {}

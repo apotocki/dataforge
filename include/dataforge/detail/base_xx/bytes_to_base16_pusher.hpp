@@ -37,7 +37,7 @@ public:
     }
 
     template <typename ConsumerT>
-    inline void finish(ConsumerT cons) noexcept {}
+    inline void finish(ConsumerT) noexcept {}
 
     inline void reset() noexcept {}
 };

@@ -43,10 +43,11 @@ class basic_block_cipher
 
     template <typename QrkT>
     basic_block_cipher(QrkT const& q, AllocatorT alloc, size_t osz)
-        : algo_t{q}, AllocatorT{alloc}, object_size{osz}
-        , cipher_mode_{ (uint_least8_t)q.cmt }, pt{ q.pt }
-        , bytes_in_buf { 0 }, oblock_ready { 0 }, finalization_stage { 0 }
-        , reversed_ctr_flag { 0 }
+        : algo_t{ q }, AllocatorT{ alloc }
+        , object_size{ osz }
+        , bytes_in_buf{ 0 }, cipher_mode_{ (uint_least8_t)q.cmt }
+        , oblock_ready { 0 }, finalization_stage { 0 }
+        , reversed_ctr_flag { 0 }, pt{ q.pt }
     {
         algo_t::expand_key(q.key);
 

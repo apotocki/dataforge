@@ -56,7 +56,7 @@ public:
     }
 
     template <typename ConsumerT>
-    void finish(ConsumerT cons)
+    void finish(ConsumerT)
     {
         algo->reset();
     }

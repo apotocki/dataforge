@@ -81,7 +81,7 @@ public:
         uint32_t caclc = sha2.digest_span()[0];
         uint32_t check = 0;
         bit = this->output.begin() + 4 / sizeof(BufferElementT);
-        for (int i = 0; i < 4 / sizeof(BufferElementT); ++i) {
+        for (size_t i = 0; i < 4 / sizeof(BufferElementT); ++i) {
             --bit;
             check <<= (8 * sizeof(BufferElementT)) % sizeof(uint32_t);
             check |= *bit;

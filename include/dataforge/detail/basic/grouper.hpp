@@ -27,7 +27,7 @@ public:
     using output_element_type = ET;
 
     template <typename SrcT>
-    grouper(SrcT const& quark, grouped_qrk<ET> const& gt)
+    grouper(SrcT const&, grouped_qrk<ET> const& gt)
         : group_sz{ gt.group_sz }
         , row_sz{ gt.row_sz }
         , prefix{ gt.prefix }

@@ -87,7 +87,7 @@ struct counter
         }
         data_[0] = static_cast<T>(x & mask) - tmp - 1;
 
-        T carry = 0;
+        //T carry = 0;
 
         for (int i = 1; i < N; ++i)
         {

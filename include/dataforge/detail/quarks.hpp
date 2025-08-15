@@ -203,7 +203,7 @@ protected:
 
 public:
     template <typename ... ArgsT>
-    void on_error(ArgsT&& ... args) const
+    void on_error(ArgsT&& ...) const
     {
         throw std::runtime_error("unhandled error");
     }

@@ -71,7 +71,7 @@ void magma_cipher<DerivedT, Endianness>::decrypt_block(const word_type* in, word
 		std::swap(a, b);
 	}
 	for (int i = 8; i < 32; ++i) {
-		word_type tmp = pk[7 - i & 7] + a;
+		word_type tmp = pk[(7 - i) & 7] + a;
 		tmp = t(tmp);
 		tmp = left_rotate<word_size>(tmp, 11);
 		b ^= tmp;

@@ -161,7 +161,9 @@ public:
             if (input.empty()) {
                 input = span_cast<const unsigned char>(p());
                 if (input.empty()) {
-                    int ret = lzma_code(&state_->strm_, LZMA_FINISH);
+                    if (int ret = lzma_code(&state_->strm_, LZMA_FINISH); ret != LZMA_STREAM_END) {
+                        on_error("lzma compressor error", ret, *this);
+                    }
                     auto us = state_->used_span();
                     state_->reset_buffer();
                     return us;

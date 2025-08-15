@@ -142,7 +142,7 @@ void blake_impl<blake_type, Type>::process_block(const void* msg)
 }
 
 template <blake_type Type>
-void blake_impl<blake_type, Type>::store_bit_count(void* dst)
+void blake_impl<blake_type, Type>::store_bit_count(void*)
 {
     blake_impl::buffer_[blake_impl::block_size - blake_impl::input_length_size - 1] |= blake_impl::special_padding_byte;
     this->bit_count.store_as_big_endian(blake_impl::buffer_ + blake_impl::block_size - blake_impl::input_length_size, 2);

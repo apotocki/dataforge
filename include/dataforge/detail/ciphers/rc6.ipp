@@ -33,7 +33,7 @@ void rc6_cipher<DerivedT, W>::expand_key(std::span<const unsigned char> key)
 
     if (key.empty()) {
         word_type A = 0, B = 0;
-        for (uint_least16_t i = 0, j = 0, n = 3 * t; n > 0; --n, i = (1 + i) % t)
+        for (uint_least16_t i = 0, n = 3 * t; n > 0; --n, i = (1 + i) % t)
         {
             s()[i] = A = left_rotate<W, word_type>((s()[i] + A + B), 3);
             B += A;

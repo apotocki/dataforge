@@ -638,7 +638,7 @@ TEST(DataforgeTest, belt)
 
 void magma_test()
 {
-    auto flt = filter<char>([](char c) { return c != ' '; });
+    //auto flt = filter<char>([](char c) { return c != ' '; });
     std::vector<char> key;
     (quark_push_iterator{ base16l | int8, std::back_inserter(key) } << "ffeeddccbbaa99887766554433221100f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"sv).finish();
 
