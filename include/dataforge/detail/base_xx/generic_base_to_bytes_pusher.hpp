@@ -29,7 +29,7 @@ protected:
     uint32_t zeros_{0};
     const char zpad_char_;
     uint8_t head_state: 1;
-    uint8_t reserved : 1;
+    //uint8_t reserved : 1;
 
 public:
     using input_element_type = char;

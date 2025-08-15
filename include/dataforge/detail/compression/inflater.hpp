@@ -61,6 +61,7 @@ public:
         if (state_) state_->destroy_inflate();
         state_ = rhs.state_;
         rhs.state_ = nullptr;
+        return *this;
     }
 
     ~inflater()

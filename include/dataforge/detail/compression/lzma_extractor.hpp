@@ -73,6 +73,7 @@ public:
         state_ = rhs.state_;
         is_lzma2 = rhs.is_lzma2;
         rhs.state_ = nullptr;
+        return *this;
     }
 
     ~lzma_extractor()

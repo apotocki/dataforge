@@ -103,6 +103,7 @@ public:
         if (state_) state_->destroy();
         state_ = rhs.state_;
         rhs.state_ = nullptr;
+        return *this;
     }
 
     ~lzma_compressor()

@@ -48,6 +48,7 @@ public:
         if (state_) state_->destroy_deflate();
         state_ = rhs.state_;
         rhs.state_ = nullptr;
+        return *this;
     }
 
     ~deflater()

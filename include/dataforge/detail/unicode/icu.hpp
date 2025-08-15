@@ -57,7 +57,7 @@ struct result_buffer<T, ResultBuffSzV, false>
     result_buffer(result_buffer const&) = delete;
     inline result_buffer(result_buffer&& rhs) noexcept : buffer_{ rhs.buffer_ }, buffpos_{ rhs.buffpos_ } { rhs.buffer_ = nullptr; }
     result_buffer& operator=(result_buffer const&) = delete;
-    inline result_buffer& operator=(result_buffer&& rhs) noexcept { buffer_ = rhs.buffer_; buffpos_ = rhs.buffpos_; rhs.buffer_ = nullptr; }
+    inline result_buffer& operator=(result_buffer&& rhs) noexcept { buffer_ = rhs.buffer_; buffpos_ = rhs.buffpos_; rhs.buffer_ = nullptr; return *this; }
 
     ~result_buffer() noexcept
     {
