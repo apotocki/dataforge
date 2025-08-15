@@ -44,6 +44,7 @@ public:
         if (state_) state_->destroy_compressor();
         state_ = rhs.state_;
         rhs.state_ = nullptr;
+        return *this;
     }
 
     ~lz4_compressor()

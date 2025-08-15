@@ -63,19 +63,19 @@ struct icu_basic_escaper_handler
         }
     }
 
-    void operator()(std::string err) const
+    void operator()(std::string const& err) const
     {
         throw std::runtime_error(err);
     }
 
-    void operator()(std::string err, std::string enc, UErrorCode errCode) const
+    void operator()(std::string const& err, std::string enc, UErrorCode errCode) const
     {
         std::ostringstream errss;
         errss << err << ": '" << enc << "', error: " << (int)errCode;
         throw std::runtime_error(errss.str());
     }
 
-    void operator()(std::string err, UErrorCode errCode, UConverter* conv) const
+    void operator()(std::string const& err, UErrorCode errCode, UConverter* conv) const
     {
         UErrorCode errCode2 = U_ZERO_ERROR;
         auto const* encname = ucnv_getName(conv, &errCode2);

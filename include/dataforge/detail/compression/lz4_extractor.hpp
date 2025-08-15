@@ -48,6 +48,7 @@ public:
         if (state_) state_->destroy_extractor();
         state_ = rhs.state_;
         rhs.state_ = nullptr;
+        return *this;
     }
 
     ~lz4_extractor()

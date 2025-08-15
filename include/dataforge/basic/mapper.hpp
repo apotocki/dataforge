@@ -45,7 +45,7 @@ struct tagged_mapper : cvt_qrk<void>
 
     std::tuple<typename QuarkedChainsT::chain_type...> cases;
 
-    tagged_mapper(QuarkedChainsT && ... args) : cases{ std::move(args.chain) ... } {}
+    inline explicit tagged_mapper(QuarkedChainsT && ... args) : cases{ std::move(args.chain) ... } {}
 };
 
 template <typename T, T ... VT, typename ... ChainT>

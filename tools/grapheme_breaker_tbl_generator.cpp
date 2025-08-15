@@ -13,10 +13,10 @@
 #include <map>
 #include <algorithm>
 
-#include "dataforge/utf.hpp"
+#include "dataforge/unicode/utf.hpp"
 #include "dataforge/base_xx/base16.hpp"
 #include "dataforge/basic/group.hpp"
-#include "dataforge/push_iterator.hpp"
+#include "dataforge/quark_push_iterator.hpp"
 
 namespace dataforge {
 void graheme_break_test();
@@ -62,7 +62,7 @@ bool hexinteger(IteratorT& b, IteratorT const& e, unsigned int mindigits, unsign
 }
 
 template <typename IteratorT>
-bool try_read(IteratorT & it, IteratorT eit, char s, std::string errormsg)
+bool try_read(IteratorT & it, IteratorT eit, char s, std::string const& errormsg)
 {
     if (it == eit) throw std::runtime_error("unexpected eol, " + errormsg);
     if (*it == s) {
@@ -73,7 +73,7 @@ bool try_read(IteratorT & it, IteratorT eit, char s, std::string errormsg)
 }
 
 template <typename IteratorT>
-void read_assert(IteratorT& it, IteratorT eit, char s, std::string errormsg)
+void read_assert(IteratorT& it, IteratorT eit, char s, std::string const& errormsg)
 {
     if (!try_read(it, eit, s, errormsg)) {
         throw std::runtime_error(std::string("unexpected char, expected: ") + s + " at: " + errormsg);
@@ -178,7 +178,7 @@ parse_break_property()
     for (size_t i = 0; i < maxidx; ++i) {
         auto const& tpl = cpmap[i];
         if (std::get<0>(tpl) < prev) {
-            std::runtime_error("range intersection found");
+            throw std::runtime_error("range intersection found");
         }
         int_least32_t dist = std::get<0>(tpl) - prev;
         if (dist > 1) {
