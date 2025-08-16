@@ -11,6 +11,7 @@ Transformations are described using *quarks* — small, composable objects that 
 
 ```cpp
 #include "dataforge/quark_push_iterator.hpp"
+#include "dataforge/quark_pull_iterator.hpp"
 #include "dataforge/base_xx/base64.hpp"
 
 using namespace dataforge;
