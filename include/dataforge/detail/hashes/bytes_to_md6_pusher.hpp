@@ -49,7 +49,7 @@ public:
     }
 
     template <Integral<8> LEIT, typename ConsumerT>
-    inline void push(const LEIT ival, ConsumerT&& cons)
+    inline void push(const LEIT ival, ConsumerT&&)
     {
         push(std::span<const LEIT, 1>(&ival, 1), nullptr);
     }

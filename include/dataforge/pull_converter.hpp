@@ -214,7 +214,10 @@ public:
 
     inline CvtTupleT& chain() const { return *cvt_tuple_; }
     
+    // intermediate not handled inputs for each converter in the chain for pull operation  
+    // a converter in the chain is responsible for filling its own input span
     mutable typename span_tuple<CvtTupleT>::type inputs;
+
     mutable last_provider<input_element_type, BaseIteratorT> provider;
     mutable std::bitset<std::tuple_size_v<CvtTupleT>> eof_flags;
 };
