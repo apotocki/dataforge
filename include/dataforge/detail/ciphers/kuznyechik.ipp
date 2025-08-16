@@ -16,25 +16,25 @@ namespace dataforge {
     
 template <typename DerivedT>
 template <typename QrkT>
-kuznyechik_cipher<DerivedT>::kuznyechik_cipher(QrkT const& q)
+kuznyechik_cipher<DerivedT>::kuznyechik_cipher(QrkT const& /*q*/)
 {
 
 }
 
 template <typename DerivedT>
-void kuznyechik_cipher<DerivedT>::expand_key(std::span<const unsigned char> key)
+void kuznyechik_cipher<DerivedT>::expand_key(std::span<const unsigned char> /*key*/)
 {
     
 }
 
 template <typename DerivedT>
-void kuznyechik_cipher<DerivedT>::encrypt_block(const word_type* in, word_type* out) noexcept
+void kuznyechik_cipher<DerivedT>::encrypt_block(const word_type* /*in*/, word_type* /*out*/) noexcept
 {
 
 }
 
 template <typename DerivedT>
-void kuznyechik_cipher<DerivedT>::decrypt_block(const word_type* in, word_type* out) noexcept
+void kuznyechik_cipher<DerivedT>::decrypt_block(const word_type* /*in*/, word_type* /*out*/) noexcept
 {
 
 }

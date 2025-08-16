@@ -584,7 +584,7 @@ void belt_test()
     DATAFORGE_TEST(int8 | flt / base16u | int8 / belt(key1, cipher_mode_type::ECB, ""_bs, padding_type::none) | int8 | base16u | grp, out3, in3);
 
     std::vector<char> iv;
-    (quark_push_iterator{ std::move(int8 | flt / base16u | int8), std::back_inserter(iv) } << "BE329713 43FC9A48 A02A885F 194B09A1"sv).finish();
+    (quark_push_iterator{ int8 | flt / base16u | int8, std::back_inserter(iv) } << "BE329713 43FC9A48 A02A885F 194B09A1"sv).finish();
 
     auto out0_cbc = "10116EFA E6AD58EE 14852E11 DA1B8A74 5CF2480E 8D03F1C1 9492E53E D3A70F60 657C1EE8 C0E0AE5B 58388BF8 A68E3309"sv;
     DATAFORGE_TEST(int8 | flt / base16u | int8 | belt(key, cipher_mode_type::CBC, iv, padding_type::none) / int8 | base16u | grp, in0, out0_cbc);
@@ -596,7 +596,7 @@ void belt_test()
     DATAFORGE_TEST(int8 | flt / base16u | int8 / belt(key, cipher_mode_type::CBC, iv, padding_type::none) | int8 | base16u | grp, out4_cbc, in4_cbc);
 
     std::vector<char> iv1;
-    (quark_push_iterator{ std::move(int8 | flt / base16u | int8), std::back_inserter(iv1) } << "7ECDA4D0 1544AF8C A58450BF 66D2E88A"sv).finish();
+    (quark_push_iterator{ int8 | flt / base16u | int8, std::back_inserter(iv1) } << "7ECDA4D0 1544AF8C A58450BF 66D2E88A"sv).finish();
 
     auto in5_cbc = "730894D6 158E17CC 1600185A 8F411CAB 0471FF85 C8379239 8D8924EB D57D03DB 95B97A9B 7907E4B0 20960455 E46176F8"sv;
     auto out5_cbc = "E12BDC1A E28257EC 703FCCF0 95EE8DF1 C1AB7638 9FE678CA F7C6F860 D5BB9C4F F33C657B 637C306A DD4EA779 9EB23D31"sv;

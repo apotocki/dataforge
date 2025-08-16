@@ -78,7 +78,7 @@ public:
     using output_element_type = IT;
 
     template <typename ProviderT>
-    std::span<const IT> pull(std::span<const IT>& input, ProviderT p)
+    std::span<const IT> pull(std::span<const IT>&, ProviderT p)
     {
         return span_cast<const IT>(p());
     }
