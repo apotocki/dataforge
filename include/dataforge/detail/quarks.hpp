@@ -203,7 +203,7 @@ protected:
 
 public:
     template <typename ... ArgsT>
-    void on_error(ArgsT&& ...) const
+    inline void on_error(ArgsT&& ...) const
     {
         throw std::runtime_error("unhandled error");
     }
@@ -216,7 +216,7 @@ public:
     using input_element_type = InputT;
     using output_element_type = OutputT;
 
-    output_element_type values_[CasheSz];
+    std::array<output_element_type, CasheSz> values_{};
 
     template <typename ProviderT>
     std::span<const output_element_type> pull(std::span<const input_element_type>& input, ProviderT p)
@@ -224,12 +224,12 @@ public:
         size_t osz;
         auto provider_fn = [this, &osz](auto spanorval) {
             if constexpr (std::is_same_v<output_element_type, decltype(spanorval)>) {
-                assert(osz < sizeof(values_));
+                assert(osz < values_.size());
                 values_[osz] = spanorval;
                 ++osz;
             } else {
-                assert(osz + spanorval.size() <= sizeof(values_));
-                std::copy(spanorval.begin(), spanorval.end(), values_ + osz);
+                assert(osz + spanorval.size() <= values_.size());
+                std::copy(spanorval.begin(), spanorval.end(), std::addressof(values_[osz]));
                 osz += spanorval.size();
             }
         };
@@ -240,14 +240,14 @@ public:
                 if (input.empty()) {
                     osz = 0;
                     static_cast<DerivedT*>(this)->finish(provider_fn);
-                    return { values_, osz };
+                    return { values_.data(), osz };
                 }
             }
             input_element_type ival = input.front();
             input = input.subspan(1);
             osz = 0;
             static_cast<DerivedT*>(this)->push(ival, provider_fn);
-            if (osz) return { values_, osz };
+            if (osz) return { values_.data(), osz };
         }
     }
 };

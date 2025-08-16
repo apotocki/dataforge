@@ -27,7 +27,7 @@ struct streebog_impl : digest_base<streebog_impl, 64>
     void process_block(const void* msg);
     void finalize();
 
-    static constexpr uint8_t padding_byte = 1u;
+    static constexpr std::byte padding_byte{ 1u };
 
     using digest_word_type = uint_least64_t;
     static constexpr size_t digest_word_bit_count = 64;

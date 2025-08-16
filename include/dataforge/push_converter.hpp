@@ -200,9 +200,8 @@ class dynamic_push_converter
 public:
     template <typename ConverterT>
     explicit dynamic_push_converter(ConverterT && cvt)
-    {
-        cvt_ = std::make_shared<concrete_polymorphic_push_converter<ET, ConverterT>>(std::forward<ConverterT>(cvt));
-    }
+        : cvt_{ std::make_shared<concrete_polymorphic_push_converter<ET, ConverterT>>(std::forward<ConverterT>(cvt)) }
+    {}
 
     template <typename CvtTupleT, typename ... Quarks, typename BaseIteratorArgT>
     dynamic_push_converter(quark_chain<CvtTupleT, std::tuple<Quarks ...>>&& chain, BaseIteratorArgT&& it)

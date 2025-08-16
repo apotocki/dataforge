@@ -9,7 +9,7 @@
 
 namespace dataforge::belt_detail {
 
-inline void belt_encrypt(const uint_least64_t* key, const uint_least64_t* inBlock, uint_least64_t* outBlock)
+[[nodiscard]] uint_least64_t * belt_encrypt(const uint_least64_t* key, const uint_least64_t* inBlock, uint_least64_t* outBlock)
 {
     if constexpr (
         sizeof(uint_least64_t) * CHAR_BIT == 64 &&
@@ -18,19 +18,21 @@ inline void belt_encrypt(const uint_least64_t* key, const uint_least64_t* inBloc
     ) {
         belt_encrypt(reinterpret_cast<const uint_least32_t*>(key),
             reinterpret_cast<const uint_least32_t*>(inBlock),
-            reinterpret_cast<uint_least32_t*>(outBlock));
+            std::launder(reinterpret_cast<uint_least32_t*>(outBlock)));
+        return std::launder(outBlock);
     } else {
         uint_least32_t k32[8];
         le_copy<64, 32>(key, 4, k32);
 
-        uint_least32_t in32[8];
-        le_copy<64, 32>(inBlock, 4, in32);
+        uint_least32_t in32[4];
+        le_copy<64, 32>(inBlock, 2, in32);
 
         uint_least32_t out32[4];
         belt_encrypt(k32, in32, out32);
 
         outBlock[0] = (uint_least64_t(out32[1]) << 32) + out32[0];
         outBlock[1] = (uint_least64_t(out32[3]) << 32) + out32[2];
+        return outBlock;
     }
 }
 
@@ -53,15 +55,15 @@ inline void belt_hash_impl::reset() noexcept
     h[3] = 0x0dcefd02c2722e25ull;
 }
 
-inline void belt_hash_impl::sigma2(const uint_least64_t* x, uint_least64_t* result)
+void belt_hash_impl::sigma2(const uint_least64_t* x, uint_least64_t* result)
 {
-    uint_least64_t teta[4];
+    uint_least64_t tetabuff[4];
     uint_least64_t h0 = h[0];
     uint_least64_t h1 = h[1];
 
-    uint_least64_t u3u4[2] = { h[0] ^ h[2], h[1] ^ h[3] };
+    uint_least64_t u3u4[2] = { h0 ^ h[2], h1 ^ h[3] };
 
-    belt_encrypt(x, u3u4, teta);
+    uint_least64_t * teta = belt_encrypt(x, u3u4, tetabuff);
 
     teta[0] ^= u3u4[0];
     teta[1] ^= u3u4[1];
@@ -71,10 +73,10 @@ inline void belt_hash_impl::sigma2(const uint_least64_t* x, uint_least64_t* resu
     teta[3] = h[3];
 
     // F_{teta1}(u1) xor u1
-    belt_encrypt(teta, x, result);
+    uint_least64_t * mresult = belt_encrypt(teta, x, result);
 
-    result[0] ^= x[0];
-    result[1] ^= x[1];
+    result[0] = mresult[0] ^ x[0];
+    result[1] = mresult[1] ^ x[1];
 
     // (sigma1(u) xor 0xff..ff) || u3
     // invert first part of teta1
@@ -85,10 +87,10 @@ inline void belt_hash_impl::sigma2(const uint_least64_t* x, uint_least64_t* resu
     teta[2] = h0;
     teta[3] = h1;
 
-    belt_encrypt(teta, x + 2, result + 2);
+    mresult = belt_encrypt(teta, x + 2, result + 2);
 
-    result[2] ^= x[2];
-    result[3] ^= x[3];
+    result[2] = mresult[0] ^ x[2];
+    result[3] = mresult[1] ^ x[3];
 }
 
 inline void belt_hash_impl::process_block(const void* m)
@@ -98,8 +100,8 @@ inline void belt_hash_impl::process_block(const void* m)
 
     uint_least64_t u3u4[2] = { h[0] ^ h[2], h[1] ^ h[3] };
     
-    uint_least64_t tmp[2];
-    belt_encrypt(pms, u3u4, tmp);
+    uint_least64_t tmpbuff[2];
+    uint_least64_t * tmp = belt_encrypt(pms, u3u4, tmpbuff);
     s[0] ^= tmp[0] ^ u3u4[0];
     s[1] ^= tmp[1] ^ u3u4[1];
 
@@ -120,6 +122,7 @@ inline void belt_hash_impl::finalize()
     std::copy(bit_count.data(), bit_count.data() + 2, fbuff);
     fbuff[2] = s[0];
     fbuff[3] = s[1];
+        
     sigma2(fbuff, h.data());
 }
 

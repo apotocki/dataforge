@@ -39,7 +39,7 @@ private:
     inline word_type* ks_begin() noexcept
     {
         static constexpr size_t aligned_sz = (sizeof(DerivedT) + sizeof(word_type) - 1) & ~(sizeof(word_type) - 1);
-        return reinterpret_cast<word_type*>(reinterpret_cast<char*>(this) + aligned_sz);
+        return std::launder(reinterpret_cast<word_type*>(reinterpret_cast<char*>(this) + aligned_sz));
     }
 };
 
