@@ -7,6 +7,44 @@
 It provides both push (output) and pull (input) iterator-based interfaces for applying arbitrary chains of conversions, including encoding, decoding, compression, encryption, hashing, and Unicode operations.  
 Transformations are described using *quarks* — small, composable objects that can be chained together with the `|` operator.
 
+## Quick Example
+
+```cpp
+#include "dataforge/quark_push_iterator.hpp"
+#include "dataforge/base_xx/base64.hpp"
+
+using namespace dataforge;
+
+std::string input = "Hello, World!";
+std::string base64_result;
+
+// Create a pipeline: input bytes → Base64 encoding → output
+auto push_it = quark_push_iterator(int8 | base64, std::back_inserter(base64_result));
+*push_it = input;
+push_it.finish();
+
+std::cout << "Encoded: " << base64_result << std::endl;  // Output: SGVsbG8sIFdvcmxkIQ==
+
+// Reverse the process: Base64 → decoded bytes
+std::string decoded_result;
+auto pull_it = quark_pull_iterator(base64 | int8, base64_result);
+for (auto span = *pull_it; !span.empty(); span = *++pull_it) {
+    std::copy(span.begin(), span.end(), std::back_inserter(decoded_result));
+}
+
+std::cout << "Decoded: " << decoded_result << std::endl;  // Output: Hello, World!
+```
+
+**More complex pipelines** can chain multiple transformations:
+```cpp
+// Example: text → UTF-8 → compression → encryption → Base64
+auto pipeline = utf8 | deflated() | aes(128, key) | base64;
+```
+
+> 📁 **See the [examples/](examples/) folder for complete working examples** including MD5 hashing, AES encryption, and more advanced use cases.
+> 
+> 🧪 **For comprehensive algorithm coverage and advanced pipeline patterns, explore the [tests/](tests/) directory** — it contains hundreds of real-world examples demonstrating every supported algorithm, from basic CRC checksums to complex multi-stage encryption pipelines.
+
 ## Why DataForge is Unique
 
 DataForge combines multiple types of data transformations in one consistent framework, unlike other libraries that cover only subsets of functionality.

@@ -91,7 +91,7 @@ public:
     }
 
     template <Integral<8> LEIT, typename ConsumerT>
-    void push(const LEIT ival, ConsumerT&& cons)
+    void push(const LEIT ival, ConsumerT&&)
     {
         base_t::input(&ival, 1);
     }

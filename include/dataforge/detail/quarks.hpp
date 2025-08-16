@@ -13,8 +13,9 @@
 #include <utility>
 #include <type_traits>
 #include <concepts>
-#include <span>
 #include <algorithm>
+#include <span>
+#include <array>
 
 #include "error_handler.hpp"
 

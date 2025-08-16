@@ -117,7 +117,7 @@ void dataforge_pull_test(ConverterChainT enc, IRangeT && input, RRangeT expected
         using r_element_type = typename std::iterator_traits<rit_t>::value_type;
         std::vector<r_element_type> result;
 
-        auto cvt_it = quark_pull_iterator{std::move(enc), input};
+        auto cvt_it = quark_pull_iterator{ std::move(enc), input };
         for (auto sp = *cvt_it; !sp.empty(); sp = *cvt_it) {
             result.insert(result.end(), sp.begin(), sp.end());
             ++cvt_it;
