@@ -78,7 +78,7 @@ struct blake_impl_base
 {
     static constexpr int digest_length() { return (int)Type / 8; }
     static constexpr std::endian digest_endianness() { return std::endian::big; }
-    static constexpr uint8_t special_padding_byte = ((int)Type % 256) ? 0u : 1u;
+    static constexpr std::byte special_padding_byte { ((int)Type % 256) ? 0u : 1u };
     static constexpr size_t digest_word_bit_count = WordBitsV;
 };
 
@@ -126,7 +126,7 @@ struct blake_impl<blake2_type, Type> : blake2_impl_base<Type, (int)Type < 384 ? 
 {
     using word_type = typename blake_impl::word_type;
     static constexpr size_t word_size = blake_impl::base_t::word_size;
-    static constexpr uint8_t padding_byte = 0x0u;
+    static constexpr std::byte padding_byte { 0x0u };
     
     using digest_word_type = word_type;
     static constexpr size_t digest_word_bit_count = word_size;

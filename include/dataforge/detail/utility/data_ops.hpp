@@ -107,7 +107,7 @@ inline void le_copy(SrcT const* vsrc, size_t n, T* buffer, size_t soffset = 0)
         std::endian::native == std::endian::little,
         "unsupported endianness"
     );
-    using src_t = std::conditional_t<std::is_void_v<SrcT>, unsigned char, SrcT>;
+    using src_t = std::conditional_t<std::is_void_v<SrcT>, std::byte, SrcT>;
     if constexpr (std::endian::native == std::endian::little &&
         sizeof(src_t) * CHAR_BIT == SrcBitC &&
         sizeof(T) * CHAR_BIT == DestBitC)

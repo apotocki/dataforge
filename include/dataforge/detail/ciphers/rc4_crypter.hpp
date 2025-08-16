@@ -9,6 +9,8 @@
 
 #include <memory>
 #include <utility>
+#include <array>
+#include <span>
 
 #include "rc4.hpp"
 
@@ -61,7 +63,7 @@ public:
         algo->reset();
     }
 
-    output_element_type cache[16];
+    std::array<output_element_type, 16> cache{};
     size_t cache_sz = 0;
     template <typename ProviderT>
     std::span<const output_element_type> pull(std::span<const input_element_type>& input, ProviderT p)
@@ -74,12 +76,12 @@ public:
                 }
             }
             cache_sz = 0;
-            auto thr = (std::min)(sizeof(cache), input.size());
+            auto thr = (std::min)(cache.size(), input.size());
             algo->process_data(std::span{ input.data(), thr }, [this](output_element_type b) {
                 cache[cache_sz++] = b;
             });
             input = input.subspan(thr);
-            return std::span{ cache, cache_sz };
+            return std::span{ cache.data(), cache_sz };
         }
     }
 

@@ -20,9 +20,9 @@ struct digest_base
     static constexpr size_t block_size = BlockSizeV;
 
     using size_type = SizeT;
-    using element_type = uint_least8_t;
+    using element_type = std::byte;
 
-    static constexpr uint8_t padding_byte = 0x80u;
+    static constexpr std::byte padding_byte{ 0x80u };
     static constexpr bool allow_full_buffer = false;
 
     void finalize();
@@ -78,7 +78,7 @@ void digest_base<DerivedT, BlockSizeV, SizeT, BCV>::input(const void* vdata, siz
 {
     if (!len) return;
 
-    const uint_least8_t* data = static_cast<const uint_least8_t*>(vdata);
+    const std::byte* data = static_cast<const std::byte*>(vdata);
 
     size_t index = 0; // index into data array
     size_t bytes_in_buf = static_cast<DerivedT&>(*this).bytes_in_buf();

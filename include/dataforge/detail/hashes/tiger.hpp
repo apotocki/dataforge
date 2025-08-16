@@ -30,7 +30,7 @@ struct tiger_impl : tiger_base, digest_base<tiger_impl, 64>
 {
 	uint_least8_t bits;
 	uint_least8_t passes;
-	uint_least8_t padding_byte;
+	std::byte padding_byte;
 
     tiger_impl(uint_least8_t bits, uint_least8_t pad, uint_least8_t pc);
 

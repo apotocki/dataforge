@@ -23,7 +23,7 @@ struct counter
     using value_type = T;
     static constexpr int elements = N;
 
-    counter() : data_{}
+    inline counter() : data_{}
     {}
     
     explicit inline counter(T x) noexcept

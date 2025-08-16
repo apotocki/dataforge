@@ -38,12 +38,12 @@ inline uint_least32_t G(uint_least32_t x, int r)
         (uint_least32_t{ H[(x >> 24) & 0xff] } << 24), r);
 }
 
-inline void belt_encrypt(const uint_least32_t* key, const uint_least32_t* inBlock, uint_least32_t* outBlock)
+inline void belt_encrypt(const uint_least32_t * key, const uint_least32_t* inBlock, uint_least32_t* outBlock)
 {
-    uint_least32_t a = inBlock[0];
-    uint_least32_t b = inBlock[1];
-    uint_least32_t c = inBlock[2];
-    uint_least32_t d = inBlock[3];
+    uint_least32_t a = *inBlock++;
+    uint_least32_t b = *inBlock++;
+    uint_least32_t c = *inBlock++;
+    uint_least32_t d = *inBlock;
 
     // KeyIndex[y][x] = ((8 - y) % 8 + x) % 8;
     for (uint_least32_t i = 0; i < 8; ++i)
@@ -63,10 +63,10 @@ inline void belt_encrypt(const uint_least32_t* key, const uint_least32_t* inBloc
         std::swap(b, c);
     }
 
-    outBlock[0] = b;
-    outBlock[1] = d;
-    outBlock[2] = a;
-    outBlock[3] = c;
+    *outBlock++ = b;
+    *outBlock++ = d;
+    *outBlock++ = a;
+    *outBlock = c;
 }
 
 }

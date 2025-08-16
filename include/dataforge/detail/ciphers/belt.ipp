@@ -13,10 +13,10 @@ namespace dataforge::belt_detail {
 
 inline void belt_decrypt(const uint_least32_t* key, const uint_least32_t* inBlock, uint_least32_t* outBlock)
 {
-    uint_least32_t a = inBlock[0];
-    uint_least32_t b = inBlock[1];
-    uint_least32_t c = inBlock[2];
-    uint_least32_t d = inBlock[3];
+    uint_least32_t a = *inBlock++;
+    uint_least32_t b = *inBlock++;
+    uint_least32_t c = *inBlock++;
+    uint_least32_t d = *inBlock;
 
     // KeyIndex[y][x] = ((8 - y) % 8 + x) % 8;
     for (int_least32_t i = 7; i >= 0; --i)
@@ -37,10 +37,10 @@ inline void belt_decrypt(const uint_least32_t* key, const uint_least32_t* inBloc
         std::swap(a, d);
     }
 
-    outBlock[0] = c;
-    outBlock[1] = a;
-    outBlock[2] = d;
-    outBlock[3] = b;
+    *outBlock++ = c;
+    *outBlock++ = a;
+    *outBlock++ = d;
+    *outBlock = b;
 }
 
 }
