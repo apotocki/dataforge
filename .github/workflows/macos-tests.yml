@@ -18,8 +18,7 @@ jobs:
         brew install cmake icu4c bzip2 lz4 xz zlib googletest
 
     - name: Configure
-      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_PREFIX_PATH="$(brew --prefix icu4c);$(brew --prefix)"
+      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$(brew --prefix icu4c);$(brew --prefix)"
 
     - name: Build
       run: cmake --build build --config Release
