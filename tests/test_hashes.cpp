@@ -52,11 +52,6 @@ void md2_test()
     EXPECT_TRUE(equal_to(result, "e2d902d6d1226800983c00acdb47316b"sv)) << "ranges are different";
 }
 
-TEST(DataforgeTest, md2)
-{
-    md2_test();
-}
-
 void md4_test()
 {
     DATAFORGE_TEST(int8 | md4 | base16l, "The quick brown fox jumps over the lazy dog"sv, "1bee69a46ba811185c194762abaeae90"sv);
@@ -64,21 +59,11 @@ void md4_test()
     DATAFORGE_TEST(int8 | md4 | base16l, ""sv, "31d6cfe0d16ae931b73c59d7e0c089c0"sv);
 }
 
-TEST(DataforgeTest, md4)
-{
-    md4_test();
-}
-
 void md5_test()
 {
     DATAFORGE_TEST(int8 | md5 | base16u, "md5"sv, "1BC29B36F623BA82AAF6724FD3B16718"sv);
     DATAFORGE_TEST(int8 | md5 | base16u, "md4"sv, "C93D3BF7A7C4AFE94B64E30C2CE39F4F"sv);
     DATAFORGE_TEST(int8 | md5 | base16u, ""sv, "D41D8CD98F00B204E9800998ECF8427E"sv);
-}
-
-TEST(DataforgeTest, md5)
-{
-    md5_test();
 }
 
 void md6_test()
@@ -95,11 +80,6 @@ void md6_test()
     example3.resize(800);
     for (size_t i = 0; i < example3.size(); ++i) example3[i] = 0x11 * (1 + (i % 7));
     DATAFORGE_TEST(int8 | md6(256, -1, ""_bs, 0) | base16l, example3, "4e78ab5ec8926a3db0dcfa09ed48de6c33a7399e70f01ebfc02abb52767594e2"sv);
-}
-
-TEST(DataforgeTest, md6)
-{
-    md6_test();
 }
 
 void ripemd_test()
@@ -131,11 +111,6 @@ void ripemd_test()
     DATAFORGE_TEST(int8 | ripemd320 | base16l, example2, "393e0df728c4ce3d79e7dcfd357d5c26f5c6d64c6d652dc53b6547b214ea9183e4f61c477ebf5cb0"sv);
 }
 
-TEST(DataforgeTest, ripemd)
-{
-    ripemd_test();
-}
-
 void tiger_test()
 {
     DATAFORGE_TEST(int8 | tiger192_3 | base16l, ""sv, "3293ac630c13f0245f92bbb1766e16167a4e58492dde73f3"sv);
@@ -154,22 +129,12 @@ void tiger_test()
     DATAFORGE_TEST(int8 | tiger2_192 | base16u, std::vector<char>(78), "92FA6750D57C08340C98743B2E0BAE08FA3FFEDF93686301"sv);
 }
 
-TEST(DataforgeTest, tiger)
-{
-    tiger_test();
-}
-
 void sha1_test()
 {
     DATAFORGE_TEST(int8 | sha1 | base16l, "The quick brown fox jumps over the lazy dog"sv, "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12"sv);
     DATAFORGE_TEST(int8 | sha1 | base16l, "sha"sv, "d8f4590320e1343a915b6394170650a8f35d6926"sv);
     DATAFORGE_TEST(int8 | sha1 | base16l, "Sha"sv, "ba79baeb9f10896a46ae74715271b7f586e74640"sv);
     DATAFORGE_TEST(int8 | sha1 | base16l, ""sv, "da39a3ee5e6b4b0d3255bfef95601890afd80709"sv);
-}
-
-TEST(DataforgeTest, sha1)
-{
-    sha1_test();
 }
 
 void sha2_test()
@@ -181,11 +146,6 @@ void sha2_test()
     DATAFORGE_TEST(int8 | sha512 | base16u, example0, "07E547D9586F6A73F73FBAC0435ED76951218FB7D0C8D788A309D785436BBB642E93A252A954F23912547D1E8A3B5ED6E1BFD7097821233FA0538F3DB854FEE6"sv);
     DATAFORGE_TEST(int8 | sha512_224 | base16u, example0, "944CD2847FB54558D4775DB0485A50003111C8E5DAA63FE722C6AA37"sv);
     DATAFORGE_TEST(int8 | sha512_256 | base16u, example0, "DD9D67B371519C339ED8DBD25AF90E976A1EEEFD4AD3D889005E532FC5BEF04D"sv);
-}
-
-TEST(DataforgeTest, sha2)
-{
-    sha2_test();
 }
 
 void sha3_test()
@@ -221,21 +181,11 @@ void sha3_test()
     DATAFORGE_TEST(int8 | shake_256(512) | base16l, example2, "46b1ebb2e142c38b9ac9081bef72877fe4723959640fa57119b366ce6899d4013af024f4222921320bee7d3bfaba07a758cd0fde5d27bbd2f8d709f4307d2c34"sv);
 }
 
-TEST(DataforgeTest, sha3)
-{
-    sha3_test();
-}
-
 void belt_hash_test()
 {
     DATAFORGE_TEST(base16u | int8 | belt_hash | base16u, "B194BAC80A08F53B366D008E58"sv, "ABEF9725D4C5A83597A367D14494CC2542F20F659DDFECC961A3EC550CBA8C75"sv);
     DATAFORGE_TEST(base16u | int8 | belt_hash | base16u, "B194BAC80A08F53B366D008E584A5DE48504FA9D1BB6C7AC252E72C202FDCE0D"sv, "749E4C3653AECE5E48DB4761227742EB6DBE13F4A80F7BEFF1A9CF8D10EE7786"sv);
     DATAFORGE_TEST(base16u | int8 | belt_hash | base16u, "B194BAC80A08F53B366D008E584A5DE48504FA9D1BB6C7AC252E72C202FDCE0D5BE3D61217B96181FE6786AD716B890B"sv, "9D02EE446FB6A29FE5C982D4B13AF9D3E90861BC4CEF27CF306BFB0B174A154A"sv);
-}
-
-TEST(DataforgeTest, belt_hash)
-{
-    belt_hash_test();
 }
 
 void gost_test()
@@ -265,11 +215,6 @@ void gost_test()
     DATAFORGE_TEST(int8 | gost_cpro | base16l, "Suppose the original message has length = 50 bytes"sv, "c3730c5cbccacf915ac292676f21e8bd4ef75331d9405e5f1a61dc3130a65011"sv);
     DATAFORGE_TEST(int8 | gost_cpro | base16l, U128, "1c4ac7614691bbf427fa2316216be8f10d92edfd37cd1027514c1008f649c4e8"sv);
     DATAFORGE_TEST(int8 | gost_cpro | base16l, a1000000, "8693287aa62f9478f7cb312ec0866b6c4e4a0f11160441e8f4ffcd2715dd554f"sv);
-}
-
-TEST(DataforgeTest, gost)
-{
-    gost_test();
 }
 
 void streebog_test()
@@ -307,20 +252,10 @@ void streebog_test()
         "b0fd29ac1b0df441769ff3fdb8dc564df67721d6ac06fb28ceffb7bbaa7948c6c014ac999235b58cb26fb60fb112a145d7b4ade9ae566bf2611402c552d20db7"sv);
 }
 
-TEST(DataforgeTest, streebog)
-{
-    streebog_test();
-}
-
 void whirlpool_test()
 {
     DATAFORGE_TEST(int8 | whirlpool | base16u, "The quick brown fox jumps over the lazy dog"sv, "B97DE512E91E3828B40D2B0FDCE9CEB3C4A71F9BEA8D88E75C4FA854DF36725FD2B52EB6544EDCACD6F8BEDDFEA403CB55AE31F03AD62A5EF54E42EE82C3FB35"sv);
     DATAFORGE_TEST(int8 | whirlpool | base16u, "The quick brown fox jumps over the lazy eog"sv, "C27BA124205F72E6847F3E19834F925CC666D0974167AF915BB462420ED40CC50900D85A1F923219D832357750492D5C143011A76988344C2635E69D06F2D38C"sv);
-}
-
-TEST(DataforgeTest, whirlpool)
-{
-    whirlpool_test();
 }
 
 void blake_test()
@@ -392,11 +327,6 @@ void blake_test()
     DATAFORGE_TEST(int8 | blake2s224 | base16l, (std::vector{ x63, x65 }), "51e00eff110c3531414e54cd204aa63af7bad3509b41401242d4d02a"sv);
 
     DATAFORGE_TEST(int8 | blake2s224_t("1"_bs, nullptr) | base16l, x64, "bbd56c7c818bd42519f86a09de65f82435bba62c7afeb83c48d48cb4"sv);
-}
-
-TEST(DataforgeTest, blake)
-{
-    blake_test();
 }
 
 }

@@ -6,10 +6,59 @@
 
 #include <iostream>
 
+using namespace dataforge;
+
+TEST(DataforgeTest, generic_base) { generic_base_test(); }
+TEST(DataforgeTest, base16) { base16_test(); }
+TEST(DataforgeTest, base32) { base32_test(); }
+TEST(DataforgeTest, base58) { base58_test(); }
+TEST(DataforgeTest, base64) { base64_test(); }
+TEST(DataforgeTest, ascii85) { ascii85_test(); }
+TEST(DataforgeTest, z85) { z85_test(); }
+
+TEST(DataforgeTest, utf) { utf_test(); }
+TEST(DataforgeTest, graheme_break) { grapheme_break_test(); }
+TEST(DataforgeTest, icu) { icu_test(); }
+
+TEST(DataforgeTest, bsd_checksum) { bsd_checksum_test(); }
+TEST(DataforgeTest, adler32) { adler32_test(); }
+TEST(DataforgeTest, crc) { crc_test(); }
+
+TEST(DataforgeTest, md2) { md2_test(); }
+TEST(DataforgeTest, md4) { md4_test(); }
+TEST(DataforgeTest, md5) { md5_test(); }
+TEST(DataforgeTest, md6) { md6_test(); }
+TEST(DataforgeTest, ripemd) { ripemd_test(); }
+TEST(DataforgeTest, tiger) { tiger_test(); }
+TEST(DataforgeTest, sha1) { sha1_test(); }
+TEST(DataforgeTest, sha2) { sha2_test(); }
+TEST(DataforgeTest, sha3) { sha3_test(); }
+TEST(DataforgeTest, belt_hash) { belt_hash_test(); }
+TEST(DataforgeTest, gost) { gost_test(); }
+TEST(DataforgeTest, streebog) { streebog_test(); }
+TEST(DataforgeTest, whirlpool) { whirlpool_test(); }
+TEST(DataforgeTest, blake) { blake_test(); }
+
+TEST(DataforgeTest, rc2) { rc2_test(); }
+TEST(DataforgeTest, rc4) { rc4_test(); }
+TEST(DataforgeTest, rc5) { rc5_test(); }
+TEST(DataforgeTest, rc6) { rc6_test(); }
+TEST(DataforgeTest, des) { des_test(); }
+TEST(DataforgeTest, aes) { aes_test(); }
+TEST(DataforgeTest, blowfish) { blowfish_test(); }
+TEST(DataforgeTest, belt) { belt_test(); }
+TEST(DataforgeTest, magma) { magma_test(); }
+//TEST(DataforgeTest, magma) { kuznyechik_test(); }
+
+TEST(DataforgeTest, group) { group_test(); }
+TEST(DataforgeTest, deflate) { deflate_test(); }
+TEST(DataforgeTest, bzip2) { bzip2_test(); }
+TEST(DataforgeTest, lzma) { lzma_test(); }
+TEST(DataforgeTest, lz4) { lz4_test(); }
+
 int main(int argc, char** argv)
 {
-
-    // the path of e.g. icudt72l.dat
+    // the path to e.g. icudt72l.dat
     //u_setDataDirectory("icu/bin64/data");
 
     UErrorCode errCode = U_ZERO_ERROR;
@@ -24,54 +73,4 @@ int main(int argc, char** argv)
     u_cleanup();
 
     return RUN_ALL_TESTS();
-    /*
-    utf_test();
-    graheme_break_test();
-    icu_test();
-
-    generic_base_test();
-    base16_test();
-    base32_test();
-    base58_test();
-    base64_test();
-    ascii85_test();
-    z85_test();
-
-    bsd_checksum_test();
-    adler32_test();
-    crc_test();
-
-    md2_test();
-    md4_test();
-    md5_test();
-    md6_test();
-    ripemd_test();
-    sha1_test();
-    sha2_test();
-    sha3_test();
-    tiger_test();
-    gost_test();
-    streebog_test();
-    belt_hash_test();
-    whirlpool_test();
-    blake_test();
-
-    blowfish_test();
-    rc2_test();
-    rc4_test();
-    rc5_test();
-    rc6_test();
-    des_test();
-    aes_test();
-    belt_test();
-    magma_test();
-    kuznyechik_test();
-
-    group_test();
-    deflate_test();
-    bzip2_test();
-    lzma_test();
-    lz4_test();
-    */
-    
 }

@@ -64,6 +64,9 @@
     <Filter Include="tools">
       <UniqueIdentifier>{3a50251d-7b8e-4001-9393-8f51de94c967}</UniqueIdentifier>
     </Filter>
+    <Filter Include="examples">
+      <UniqueIdentifier>{01c66899-443b-427d-b707-310904c70278}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\tests\test_baseN.cpp">
@@ -90,16 +93,22 @@
     <ClCompile Include="..\tools\grapheme_breaker_tbl_generator.cpp">
       <Filter>tools</Filter>
     </ClCompile>
+    <ClCompile Include="..\examples\aes.cpp">
+      <Filter>examples</Filter>
+    </ClCompile>
+    <ClCompile Include="..\examples\base64.cpp">
+      <Filter>examples</Filter>
+    </ClCompile>
+    <ClCompile Include="..\examples\crc.cpp">
+      <Filter>examples</Filter>
+    </ClCompile>
+    <ClCompile Include="..\examples\md5.cpp">
+      <Filter>examples</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\dataforge\detail\tags.hpp">
-      <Filter>dataforge\detail</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\dataforge\detail\error_handler.hpp">
       <Filter>dataforge\detail</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\dataforge\push_iterator.hpp">
-      <Filter>dataforge</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dataforge\detail\unicode\utf8_to_utf32.hpp">
       <Filter>dataforge\detail\unicode</Filter>
@@ -268,9 +277,6 @@
     </ClInclude>
     <ClInclude Include="..\include\dataforge\hashes\sha3.hpp">
       <Filter>dataforge\hashes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\dataforge\detail\hashes\sha_tag.hpp">
-      <Filter>dataforge\detail\hashes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dataforge\detail\hashes\sha3.hpp">
       <Filter>dataforge\detail\hashes</Filter>
@@ -473,9 +479,6 @@
     <ClInclude Include="..\include\dataforge\pull_converter.hpp">
       <Filter>dataforge</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\dataforge\pull_iterator.hpp">
-      <Filter>dataforge</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\dataforge\detail\unicode\utf7_to_utf16.hpp">
       <Filter>dataforge\detail\unicode</Filter>
     </ClInclude>
@@ -595,6 +598,18 @@
     </ClInclude>
     <ClInclude Include="..\tests\test_common.hpp">
       <Filter>test</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\quark_pull_iterator.hpp">
+      <Filter>dataforge</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\quark_push_iterator.hpp">
+      <Filter>dataforge</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\quarks.hpp">
+      <Filter>dataforge\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha_qrk.hpp">
+      <Filter>dataforge\detail\hashes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
