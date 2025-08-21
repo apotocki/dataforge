@@ -161,11 +161,6 @@ void generic_base_test()
     DATAFORGE_PUSH_TEST(base(std::span{ alphabet36, 36 }) | int8, strval_36_0, std::span{ in_36_0 });
 }
 
-TEST(DataforgeTest, generic_base)
-{
-    generic_base_test();
-}
-
 void base16_test()
 {
     std::string in0 = "0123456789aAbBcCdDeEfF";
@@ -173,11 +168,6 @@ void base16_test()
     DATAFORGE_TEST(base16l | int8, in0, std::span{ res0 });
     DATAFORGE_TEST(int8 | base16l, res0, std::string("0123456789aabbccddeeff"));
     DATAFORGE_TEST(int8 | base16u, res0, std::string("0123456789AABBCCDDEEFF"));
-}
-
-TEST(DataforgeTest, base16)
-{
-    base16_test();
 }
 
 void base32_test()
@@ -190,11 +180,6 @@ void base32_test()
     DATAFORGE_PUSH_TEST_SET(base32cf | int8, base32cf_decode_test_set{});
     DATAFORGE_PUSH_TEST_SET(int8 | zbase32, zbase32_encode_test_set{});
     DATAFORGE_PUSH_TEST_SET(zbase32 | int8, zbase32_decode_test_set{});
-}
-
-TEST(DataforgeTest, base32)
-{
-    base32_test();
 }
 
 void base58_test()
@@ -243,20 +228,10 @@ void base58_test()
     DATAFORGE_PUSH_TEST(base58(base58_type::BITCOIN) | int8, strval4_bitcoin, std::span{ in4 });
 }
 
-TEST(DataforgeTest, base58)
-{
-    base58_test();
-}
-
 void base64_test()
 {
     DATAFORGE_TEST_SET(int8 | base64, base64_encode_test_set{});
     DATAFORGE_TEST_SET(base64f('=') | int8, base64_decode_test_set{});
-}
-
-TEST(DataforgeTest, base64)
-{
-    base64_test();
 }
 
 void ascii85_test()
@@ -265,20 +240,10 @@ void ascii85_test()
     DATAFORGE_PUSH_TEST_SET(ascii85 | int8, ascii85_decode_test_set{});
 }
 
-TEST(DataforgeTest, ascii85)
-{
-    ascii85_test();
-}
-
 void z85_test()
 {
     DATAFORGE_PUSH_TEST_SET(int8 | z85, z85_encode_test_set{});
     DATAFORGE_PUSH_TEST_SET(z85 | int8, z85_decode_test_set{});
-}
-
-TEST(DataforgeTest, z85)
-{
-    z85_test();
 }
 
 }

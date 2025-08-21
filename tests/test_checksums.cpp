@@ -21,21 +21,11 @@ void bsd_checksum_test()
     DATAFORGE_PUSH_TEST(int8 | bsd_checksum / int16 | le, example0, (std::array<unsigned char, 2>{ 0xe5, 0x62 }));
 }
 
-TEST(DataforgeTest, bsd_checksum)
-{
-    bsd_checksum_test();
-}
-
 void adler32_test()
 {
     std::string example0 = "The quick brown fox jumps over the lazy dog.";
     DATAFORGE_PUSH_TEST(int8 | adler32, example0, (std::array<uint32_t, 1>{ 0x6be41008 }));
     DATAFORGE_PUSH_TEST(int8 | adler32/ int32 | le, example0, (std::array<unsigned char, 4>{ 0x8, 0x10, 0xe4, 0x6b }));
-}
-
-TEST(DataforgeTest, adler32)
-{
-    adler32_test();
 }
 
 void crc_test()
@@ -89,11 +79,6 @@ void crc_test()
     DATAFORGE_PUSH_TEST(int8 | crc(crc64_type::DEFAULT), example0, (std::array<uint64_t, 1>{ 0x6C40DF5F0B497347 }));
     DATAFORGE_PUSH_TEST(int8 | crc(crc64_type::WE), example0, (std::array<uint64_t, 1>{ 0x62EC59E3F1A4F00A }));
     DATAFORGE_PUSH_TEST(int8 | crc(crc64_type::XZ), example0, (std::array<uint64_t, 1>{ 0x995DC9BBDF1939FA }));
-}
-
-TEST(DataforgeTest, crc)
-{
-    crc_test();
 }
 
 }

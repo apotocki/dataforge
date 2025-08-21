@@ -26,11 +26,6 @@ void group_test()
     DATAFORGE_TEST(int8 | grouped_chars(2, "0x"_sp, ""_sp, ", "_sp, 4, ",\n "_sp), "0123456789AABBCCDDEEFF"_bs, "0x01, 0x23, 0x45, 0x67,\n 0x89, 0xAA, 0xBB, 0xCC,\n 0xDD, 0xEE, 0xFF"_bs);
 }
 
-TEST(DataforgeTest, group)
-{
-    group_test();
-}
-
 void deflate_test()
 {
     auto sp0 = "test string"_sp;
@@ -48,11 +43,6 @@ void deflate_test()
     
     std::vector<std::span<const char>> spans{ sp0, sp1 };
     DATAFORGE_PULL_TEST(int8 | deflated(false, 256, 8) | int8, spans, sp);
-}
-
-TEST(DataforgeTest, deflate)
-{
-    deflate_test();
 }
 
 void bzip2_test()
@@ -105,11 +95,6 @@ void bzip2_test()
     DATAFORGE_PULL_TEST(int8 | bzip2(256) | int8, sp, sp);
 }
 
-TEST(DataforgeTest, bzip2)
-{
-    bzip2_test();
-}
-
 void lzma_test()
 {
     auto sp0 = "test string"_sp;
@@ -140,11 +125,6 @@ void lzma_test()
     EXPECT_TRUE(equal_to(result, sp)) << "ERROR in lzma1_test";
 }
 
-TEST(DataforgeTest, lzma)
-{
-    lzma_test();
-}
-
 void lz4_test()
 {
     auto sp0 = "test string"_sp;
@@ -162,11 +142,6 @@ void lz4_test()
     EXPECT_TRUE(equal_to(result, sp)) << "ERROR in lzma2_test";
     std::vector<std::span<const char>> spans{ sp0, sp1 };
     DATAFORGE_PULL_TEST(int8 | lz4() | int8, spans, sp);
-}
-
-TEST(DataforgeTest, lz4)
-{
-    lz4_test();
 }
 
 }

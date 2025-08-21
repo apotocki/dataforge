@@ -151,11 +151,6 @@ void utf_test()
     DATAFORGE_TEST(be | utf16 | utf32 | le/int8 | base64 | int8/le | utf32 | utf16, utf16be, std::span{ utf16text });
 }
 
-TEST(DataforgeTest, utf)
-{
-    utf_test();
-}
-
 struct grapheme_accum
 {
     std::vector<std::vector<unsigned char>> graphemes;
@@ -806,11 +801,6 @@ void grapheme_break_test()
     check_breaks("\x00\x61\x20\x0D\x27\x01"_bs, { "\x00\x61\x20\x0D"_bs, "\x27\x01"_bs }); // ÷ 0061 × 200D ÷ 2701 ÷	
 }
 
-TEST(DataforgeTest, graheme_break)
-{
-    grapheme_break_test();
-}
-
 void icu_test()
 {
     const char16_t utf16text[] = {
@@ -824,11 +814,6 @@ void icu_test()
 
     DATAFORGE_TEST((icu_qrk<icu_basic_escaper_handler<>, 1>("866")) | utf16 | utf8, "\xd\xa\xaf\x90\x88\x82\x85\x92"_sp, span_cast<const char8_t>("\x0d\x0aпРИВЕТ"_sp));
     DATAFORGE_TEST((icu_qrk<icu_basic_escaper_handler<>, 1>("UTF8")) | utf16 | utf8, "\xff\xf0\x9f\x91\x01\x0d\x0aпРИВЕТ"_sp, span_cast<const char8_t>("\\xff\\xf0\\x9f\\x91\x01\x0d\x0aпРИВЕТ"_sp));
-}
-
-TEST(DataforgeTest, icu)
-{
-    icu_test();
 }
 
 }

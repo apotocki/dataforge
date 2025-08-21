@@ -133,11 +133,6 @@ void rc2_test()
 #endif
 }
 
-TEST(DataforgeTest, rc2)
-{
-    rc2_test();
-}
-
 void blowfish_test()
 {
     auto example0 = "The quick brown fox jumps over the lazy dog."sv;
@@ -167,11 +162,6 @@ void blowfish_test()
     DATAFORGE_TEST(base16u | int8 / blowfish(false, key64, cipher_mode_type::CBC, iv) | int8, "D8DD92D65BEF17EFA9890B00CD49027A5D396924483DE77D887C4416B4B4F01C5F78D7C954458B7A7C2F8360814D1372"sv, padded0_example0);
 }
 
-TEST(DataforgeTest, blowfish)
-{
-    blowfish_test();
-}
-
 void rc4_test()
 {
     auto example0 = "The quick brown fox jumps over the lazy dog."sv;
@@ -182,11 +172,6 @@ void rc4_test()
 
     DATAFORGE_TEST(int8 | rc4_qrk(key64, 8u, 1u) / int8 | base16u, example0, "9F3DA02D89A2B5537259194B439A6474A7DE8FCD48973D33B1D72C853DBD8D700B1D55BA69F8EB7E3F1E74E4"sv);
     DATAFORGE_TEST(base16u | int8 / rc4_qrk(key64, 8u, 1u) | int8, "9F3DA02D89A2B5537259194B439A6474A7DE8FCD48973D33B1D72C853DBD8D700B1D55BA69F8EB7E3F1E74E4"sv, example0);
-}
-
-TEST(DataforgeTest, rc4)
-{
-    rc4_test();
 }
 
 void rc5_test()
@@ -400,11 +385,6 @@ void rc5_test()
     DATAFORGE_TEST(base16u | int8 / rc5_qrk<16>(18, key64b, cipher_mode_type::CBC, iv_4, padding_type::pkcs) | int8, result16, example8b);
 }
 
-TEST(DataforgeTest, rc5)
-{
-    rc5_test();
-}
-
 void rc6_test()
 {
     std::array<unsigned char, 16> example0 = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -447,11 +427,6 @@ void rc6_test()
     auto r7 = "9C542D60F1F52EE61964BD93A9ACDEC5243E5F07FB1242298F5638A20BC862E7B1A56BCA2C3E7086264D7ACAD908E8584F642A1A6F87C6BF65BD63B746410791"sv;
     DATAFORGE_TEST(int8 | rc6_qrk<64>(20, key6, cipher_mode_type::CBC, iv6, padding_type::pkcs) / int8 | base16u, example6, r7);
     DATAFORGE_TEST(base16u | int8 / rc6_qrk<64>(20, key6, cipher_mode_type::CBC, iv6, padding_type::pkcs) | int8, r7, example6);
-}
-
-TEST(DataforgeTest, rc6)
-{
-    rc6_test();
 }
 
 void des_test()
@@ -499,11 +474,6 @@ void des_test()
     DATAFORGE_TEST(base16u | int8 / des_qrk(3u, key192) | int8, result, "The quick brown fox jumps over the lazy dog.\x0\x0\x0\x0"sv);
 }
 
-TEST(DataforgeTest, des)
-{
-    des_test();
-}
-
 void aes_test()
 {
     auto example0 = "The quick brown fox jumps over the lazy dog."sv;
@@ -535,11 +505,6 @@ void aes_test()
     result = "E53462932E513B64061E548A807971F3DB4829B5EF8E9AF8F3C956F181E264471E52B27DCFEA7F0D9EAA4DDF3C9E4424"sv;
     DATAFORGE_TEST(int8 | aes(128, key256, cipher_mode_type::CBC, iv, padding_type::pkcs) / int8 | base16u, example0, result);
     DATAFORGE_TEST(base16u | int8 / aes(128, key256, cipher_mode_type::CBC, iv, padding_type::pkcs) | int8, result, example0);
-}
-
-TEST(DataforgeTest, aes)
-{
-    aes_test();
 }
 
 void belt_test()
@@ -631,11 +596,6 @@ void belt_test()
     DATAFORGE_TEST(int8 | flt / base16u | int8 / belt(key1, cipher_mode_type::CTR, iv1, padding_type::none) | int8 | base16u | grp, out1_ctr, in1_ctr);
 }
 
-TEST(DataforgeTest, belt)
-{
-    belt_test();
-}
-
 void magma_test()
 {
     //auto flt = filter<char>([](char c) { return c != ' '; });
@@ -646,11 +606,6 @@ void magma_test()
     DATAFORGE_TEST(base16u | int8 / magma(key, cipher_mode_type::ECB, ""_bs, padding_type::none) | int8 | base16l, "4ee901e5c2d8ca3d"sv, "fedcba9876543210"sv);
     DATAFORGE_TEST(base16u | int8 | magma(key, cipher_mode_type::ECB, ""_bs, padding_type::none) / int8 | base16l, "92def06b3c130a59"sv, "2b073f0494f372a0"sv);
     DATAFORGE_TEST(base16u | int8 / magma(key, cipher_mode_type::ECB, ""_bs, padding_type::none) | int8 | base16l, "2b073f0494f372a0"sv, "92def06b3c130a59"sv);
-}
-
-TEST(DataforgeTest, magma)
-{
-    magma_test();
 }
 
 //void kuznyechik_test()
