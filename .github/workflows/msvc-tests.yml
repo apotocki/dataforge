@@ -27,7 +27,7 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: Build solution
-        run: msbuild msvc/dataforge_tests.sln /p:Configuration=Release
+        run: msbuild dataforge.sln /p:Configuration=Release
 
       - name: Run tests
         run: |

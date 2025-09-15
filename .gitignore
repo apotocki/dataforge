@@ -1,2 +1,6 @@
+/.vs
+/x64
+/Debug
+/Release
 /vcpkg_installed
 /vcpkg
