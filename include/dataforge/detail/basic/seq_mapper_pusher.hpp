@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2023 Alexander Pototskiy
+    Copyright (c) 2025 Alexander Pototskiy
 
     Use, modification and distribution is subject to the Boost Software
     License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
@@ -17,7 +17,7 @@ namespace dataforge {
 template <seq_change_action ActionV, typename CvtTupleT, typename ... Quarks>
 class seq_mapper_pusher : public generic_pusher<void>
 {
-    quark_tuple_wrapper<CvtTupleT> cvt_tuple_;
+    cvt_tuple_wrapper<CvtTupleT> cvt_tuple_;
     size_t numerator_ {0};
 
 public:
@@ -41,7 +41,7 @@ public:
             } else {
                 conv.finish();
             }
-            conv.quark = numerator_ = ival.first;
+            conv.tag = numerator_ = ival.first;
         }
         conv(ival.second);
     }

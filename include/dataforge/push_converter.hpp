@@ -106,7 +106,7 @@ struct slice_push_converter
 template <typename CvtTupleT, typename BaseIteratorT>
 class push_converter
 {
-    mutable quark_tuple_wrapper<CvtTupleT> cvt_tuple_;
+    mutable cvt_tuple_wrapper<CvtTupleT> cvt_tuple_;
     mutable BaseIteratorT base;
 
     using consumer_iterator_t = typename std::conditional_t<

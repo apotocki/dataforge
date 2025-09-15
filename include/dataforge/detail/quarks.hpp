@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2023 Alexander Pototskiy
+    Copyright (c) 2025 Alexander Pototskiy
 
     Use, modification and distribution is subject to the Boost Software
     License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
@@ -271,21 +271,21 @@ struct cvt_resolver
 };
 
 template <typename CvtTupleT>
-struct quark_tuple_wrapper
+struct cvt_tuple_wrapper
 {
     CvtTupleT tuple;
 
     template <size_t ... I, typename Tuple>
-    quark_tuple_wrapper(std::index_sequence<I ...>, Tuple const& t)
+    cvt_tuple_wrapper(std::index_sequence<I ...>, Tuple const& t)
         : tuple{ std::tuple_element_t<I, CvtTupleT>{ as_finish(std::get<I>(t)), as_start(std::get<I + 1>(t)) } ... }
     {}
 
     template <typename ... Quarks>
-    explicit quark_tuple_wrapper(quark_chain<CvtTupleT, std::tuple<Quarks ...>> const& chain)
-        : quark_tuple_wrapper(std::make_index_sequence<(sizeof ... (Quarks)) - 1>(), chain.quarks)
+    cvt_tuple_wrapper(quark_chain<CvtTupleT, std::tuple<Quarks ...>> const& chain)
+        : cvt_tuple_wrapper(std::make_index_sequence<(sizeof ... (Quarks)) - 1>(), chain.quarks)
     {}
 
-    CvtTupleT& operator*() { return tuple; }
+    inline CvtTupleT& operator*() noexcept { return tuple; }
 };
 
 /* this indirection is only intended for a more friendly compiler error message if no converter was found */

@@ -178,7 +178,7 @@ template <typename ... Ts> struct span_tuple<std::tuple<Ts...>> { using type = s
 template <typename CvtTupleT, typename BaseIteratorT>
 class pull_converter
 {
-    mutable quark_tuple_wrapper<CvtTupleT> cvt_tuple_;
+    mutable cvt_tuple_wrapper<CvtTupleT> cvt_tuple_;
     
 public:
     using cvt_tuple_type = CvtTupleT;
