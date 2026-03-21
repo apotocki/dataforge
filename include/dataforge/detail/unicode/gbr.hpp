@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cstdint>
+#include <algorithm>
 
 namespace dataforge::unicode_detail {
 
@@ -390,5 +391,103 @@ inline const uint_least8_t grapheme_types_tbl0[] = {
     0xE0, 0xE0, 0x30, 0x34, 0x34
 };
 #endif
+
+inline code_point_property grapheme_cluster_property(char32_t uchar) noexcept
+{
+#if 0 // basic
+    using namespace unicode_detail;
+    auto it = std::lower_bound(grapheme_breaks_tbl0, grapheme_breaks_tbl0 + sizeof(grapheme_breaks_tbl0) / sizeof(uint_least32_t), (uint_least32_t)uchar);
+    size_t offs = it - grapheme_breaks_tbl0;
+    assert(offs / 2 < sizeof(grapheme_types_tbl0));
+    return static_cast<code_point_property>(0xf & (grapheme_types_tbl0[offs / 2] >> (4 * (offs & 1))));
+#endif
+#if 0 // binary search
+    using namespace unicode_detail;
+    uint_least32_t const* b0 = grapheme_breaks_tbl0;
+    uint_least32_t const* e0 = grapheme_breaks_tbl0 + sizeof(grapheme_breaks_tbl0) / sizeof(uint_least32_t);
+    auto it = std::lower_bound(b0, e0, (uint_least32_t)uchar, [](uint_least32_t l, uint_least32_t r) { return (l << 8) < (r << 8); });
+    return it != e0 ? static_cast<code_point_property>((*it >> 24)) : code_point_property::Any;
+#endif
+
+#if 1 // 3 levels b+tree search, touches only 1 cache line (64 bytes) per lower_bound search
+    uint_least32_t sval = uchar << 8;
+    uint_least32_t const* b2 = grapheme_breaks_tbl2;
+    uint_least32_t const* e2 = b2 + sizeof(grapheme_breaks_tbl2) / sizeof(uint_least32_t);
+    auto it2 = std::lower_bound(b2, e2, sval);
+    if (it2 != e2 && ((*it2) >> 8) == uchar) return static_cast<code_point_property>(*it2 & 0xf);
+
+    uint_least32_t const* b1 = grapheme_breaks_tbl1 + (it2 - b2) * 16;
+    uint_least32_t const* e1 = (std::min)(b1 + 16, grapheme_breaks_tbl1 + sizeof(grapheme_breaks_tbl1) / sizeof(uint_least32_t));
+    auto it1 = std::lower_bound(b1, e1, sval);
+    if (it1 != e1 && ((*it1) >> 8) == uchar) return static_cast<code_point_property>(*it1 & 0xf);
+
+    uint_least32_t const* b0 = grapheme_breaks_tbl0 + (it2 - b2) * 256 + (it1 - b1) * 16;
+    uint_least32_t const* e0 = (std::min)(b0 + 16, grapheme_breaks_tbl0 + sizeof(grapheme_breaks_tbl0) / sizeof(uint_least32_t));
+    auto it0 = std::lower_bound(b0, e0, sval);
+    return it0 != e0 ? static_cast<code_point_property>(*it0 & 0xf) : code_point_property::Any;
+#endif
+}
+
+// Context flags for grapheme break rules GB11 and GB12/GB13
+struct grapheme_break_context
+{
+    bool extended_pictographic_extend_times = false;
+    bool odd_number_of_RI = false;
+
+    void update(code_point_property prev) noexcept
+    {
+        if (prev == code_point_property::Extended_Pictographic) {
+            extended_pictographic_extend_times = true;
+        } else if (extended_pictographic_extend_times && prev != code_point_property::Extend) {
+            extended_pictographic_extend_times = false;
+        }
+        odd_number_of_RI = (prev == code_point_property::Regional_Indicator) ? !odd_number_of_RI : false;
+    }
+};
+
+// Unicode TR#29 grapheme cluster break rules
+inline bool grapheme_need_break(code_point_property prev, code_point_property next,
+    grapheme_break_context const& ctx) noexcept
+{
+    // based on https://www.unicode.org/reports/tr29/tr29-41.html  (version date 2022-08-26)
+    // Do not break between a CR and LF. Otherwise, break before and after controls.
+    // GB3      CR × LF
+    if (prev == code_point_property::CR && next == code_point_property::LF) return false;
+    // GB4      (Control | CR | LF) ÷
+    if (prev == code_point_property::Control || prev == code_point_property::CR || prev == code_point_property::LF) return true;
+    // GB5      ÷ (Control | CR | LF)
+    if (next == code_point_property::Control || next == code_point_property::CR || next == code_point_property::LF) return true;
+
+    // Do not break Hangul syllable sequences.
+    // GB6      L × (L | V | LV | LVT)
+    if (prev == code_point_property::L && (next == code_point_property::L || next == code_point_property::V || next == code_point_property::LV || next == code_point_property::LVT)) return false;
+    // GB7      (LV | V) × (V | T)
+    if ((prev == code_point_property::LV || prev == code_point_property::V) && (next == code_point_property::V || next == code_point_property::T)) return false;
+    // GB8      (LVT | T) × T
+    if ((prev == code_point_property::LVT || prev == code_point_property::T) && (next == code_point_property::T)) return false;
+
+    // Do not break before extending characters or ZWJ.
+    // GB9      ×(Extend | ZWJ)
+    if (next == code_point_property::Extend || next == code_point_property::ZWJ) return false;
+
+    // The GB9a and GB9b rules only apply to extended grapheme clusters :
+    // Do not break before SpacingMarks, or after Prepend characters.
+    // GB9a     × SpacingMark
+    if (next == code_point_property::SpacingMark) return false;
+    // GB9b     Prepend ×
+    if (prev == code_point_property::Prepend) return false;
+
+    // Do not break within emoji modifier sequences or emoji zwj sequences.
+    // GB11	    \p{ Extended_Pictographic } Extend * ZWJ × \p{ Extended_Pictographic }
+    if (ctx.extended_pictographic_extend_times && prev == code_point_property::ZWJ && next == code_point_property::Extended_Pictographic) return false;
+
+    // Do not break within emoji flag sequences.That is, do not break between regional indicator(RI) symbols if there is an odd number of RI characters before the break point.
+    // GB12     sot(RI RI)* RI × RI
+    // GB13     [^ RI](RI RI)* RI × RI
+    if (!ctx.odd_number_of_RI && prev == code_point_property::Regional_Indicator && next == code_point_property::Regional_Indicator) return false;
+    // Otherwise, break everywhere.
+    // GB999    Any ÷ Any
+    return true;
+}
 
 }
