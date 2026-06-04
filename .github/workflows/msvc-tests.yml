@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
 
     steps:
       - name: Checkout repository
@@ -20,13 +20,29 @@ jobs:
       - name: Bootstrap vcpkg
         run: .\vcpkg\bootstrap-vcpkg.bat
         
+      - name: Get MSVC version
+        id: msvc
+        shell: pwsh
+        run: |
+            $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+            $installPath = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+            if (-not $installPath) {
+                throw "Visual Studio with C++ tools not found"
+            }
+
+            $msvcDir = Join-Path $installPath "VC\Tools\MSVC"
+            $version = (Get-ChildItem $msvcDir | Sort-Object Name -Descending | Select-Object -First 1).Name
+
+            "version=$version" >> $env:GITHUB_OUTPUT
+            
       - name: Cache vcpkg
         uses: actions/cache@v4
         with:
             path: |
               ${{ github.workspace }}/vcpkg_installed
-            key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+            key: vcpkg-${{ runner.os }}-${{ steps.msvc.outputs.version }}-${{ hashFiles('vcpkg.json') }}
             restore-keys: |
+              vcpkg-${{ runner.os }}-${{ steps.msvc.outputs.version }}-
               vcpkg-${{ runner.os }}-
 
       - name: Configure VCPKG_ROOT env var
@@ -36,7 +52,7 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: Build solution
-        run: msbuild dataforge.sln /p:Configuration=Release
+        run: msbuild dataforge.slnx /p:Configuration=Release
 
       - name: Run tests
         run: |
