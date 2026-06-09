@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include "../utility/data_ops.hpp"
+#include "sha2_intrinsics.hpp"
 
 namespace dataforge::sha2_detail {
 
@@ -169,6 +170,54 @@ void sha2_impl<Type>::reset()
 template<sha2_type Type>
 void sha2_impl<Type>::process_block(const void* msg)
 {
+#if DATAFORGE_SHA256_ACCEL_IMPL == DATAFORGE_SHA256_ACCEL_AUTODETECT_MODE || DATAFORGE_SHA256_ACCEL_IMPL == DATAFORGE_SHA256_ACCEL_X86_SHA || DATAFORGE_SHA256_ACCEL_IMPL == DATAFORGE_SHA256_ACCEL_ARM_SHA2
+    if constexpr (Type == sha2_type::sha224 || Type == sha2_type::sha256)
+    {
+        using sha256_block_fn_t = void(*)(uint32_t[8], const void*);
+        static const sha256_block_fn_t process_block_impl = []() -> sha256_block_fn_t {
+#if DATAFORGE_SHA256_ACCEL_IMPL == DATAFORGE_SHA256_ACCEL_AUTODETECT_MODE
+            if (!sha256_runtime_has_sha256_accel())
+                return nullptr;
+#if DATAFORGE_SHA256_TARGET_X86 && DATAFORGE_SHA256_ACCEL_CAN_COMPILE_X86_SHA
+            return nullptr;
+#elif DATAFORGE_SHA256_TARGET_ARM && DATAFORGE_SHA256_ACCEL_CAN_COMPILE_ARM_SHA2
+            return &process_block_sha256_arm;
+#else
+            return nullptr;
+#endif
+#elif DATAFORGE_SHA256_ACCEL_IMPL == DATAFORGE_SHA256_ACCEL_X86_SHA
+#if DATAFORGE_SHA256_ACCEL_CAN_COMPILE_X86_SHA
+            return nullptr;
+#else
+            return nullptr;
+#endif
+#elif DATAFORGE_SHA256_ACCEL_IMPL == DATAFORGE_SHA256_ACCEL_ARM_SHA2
+#if DATAFORGE_SHA256_ACCEL_CAN_COMPILE_ARM_SHA2
+            return &process_block_sha256_arm;
+#else
+            return nullptr;
+#endif
+#else
+            return nullptr;
+#endif
+        }();
+
+        if (process_block_impl)
+        {
+            uint32_t state32[state_size];
+            for (int i = 0; i < static_cast<int>(state_size); ++i)
+                state32[i] = static_cast<uint32_t>(H[i]);
+
+            process_block_impl(state32, msg);
+
+            for (int i = 0; i < static_cast<int>(state_size); ++i)
+                H[i] = static_cast<word_type>(state32[i]);
+
+            return;
+        }
+    }
+#endif
+
     word_type Ws[sha2_impl::message_schedule_length];
 
     static_assert(sizeof(word_type) * sha2_impl::message_schedule_length >= sha2_impl::block_size);
