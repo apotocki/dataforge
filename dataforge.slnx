@@ -3,5 +3,6 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
+  <Project Path="../numetron/msvc/numetron.vcxproj" Id="b3da4b02-589c-4f86-b8be-4cccd9faa17b" />
   <Project Path="msvc/dataforge_tests.vcxproj" Id="042f713a-c9f9-4cc8-ad49-10d3532d1917" />
 </Solution>

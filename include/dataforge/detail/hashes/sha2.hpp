@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2023 Alexander Pototskiy
+    Copyright (c) 2026 Alexander Pototskiy
 
     Use, modification and distribution is subject to the Boost Software
     License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
@@ -7,73 +7,31 @@
 ==============================================================================*/
 #pragma once
 
+#include "dataforge/detail/config.hpp"
+
 #include "../utility/digest_base.hpp"
 
-#ifndef DATAFORGE_SHA256_ACCEL_AUTODETECT
-#define DATAFORGE_SHA256_ACCEL_AUTODETECT 1
-#endif
-
-#ifndef DATAFORGE_SHA256_ACCEL_FORCE
-#define DATAFORGE_SHA256_ACCEL_FORCE -1
-#endif
-
-#ifndef DATAFORGE_SHA256_ACCEL_NONE
-#define DATAFORGE_SHA256_ACCEL_NONE 0
-#endif
-
-#ifndef DATAFORGE_SHA256_ACCEL_X86_SHA
-#define DATAFORGE_SHA256_ACCEL_X86_SHA 1
-#endif
-
-#ifndef DATAFORGE_SHA256_ACCEL_ARM_SHA2
-#define DATAFORGE_SHA256_ACCEL_ARM_SHA2 2
-#endif
-
-#ifndef DATAFORGE_SHA256_ACCEL_AUTODETECT_MODE
-#define DATAFORGE_SHA256_ACCEL_AUTODETECT_MODE 3
-#endif
-
-#if defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86)
-#define DATAFORGE_SHA256_TARGET_X86 1
+#if DATAFORGE_TARGET_X86 && (defined(__SHA__) || (defined(_MSC_VER) && !defined(__clang__)))
+#define DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA 1
 #else
-#define DATAFORGE_SHA256_TARGET_X86 0
+#define DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA 0
 #endif
 
-#if defined(__aarch64__) || defined(__arm__) || defined(_M_ARM64)
-#define DATAFORGE_SHA256_TARGET_ARM 1
+#if DATAFORGE_TARGET_ARM && (defined(__ARM_FEATURE_SHA2) || (defined(_MSC_VER) && defined(_M_ARM64) && !defined(__clang__)))
+#define DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA2 1
 #else
-#define DATAFORGE_SHA256_TARGET_ARM 0
+#define DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA2 0
 #endif
 
-#if DATAFORGE_SHA256_TARGET_X86 && (defined(__SHA__) || (defined(_MSC_VER) && !defined(__clang__)))
-#define DATAFORGE_SHA256_ACCEL_CAN_COMPILE_X86_SHA 1
-#else
-#define DATAFORGE_SHA256_ACCEL_CAN_COMPILE_X86_SHA 0
+#if DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_X86
+#if !DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA
+#undef DATAFORGE_ACCEL_IMPL
+#define DATAFORGE_ACCEL_IMPL DATAFORGE_ACCEL_NONE
 #endif
-
-#if DATAFORGE_SHA256_TARGET_ARM && (defined(__ARM_FEATURE_SHA2) || (defined(_MSC_VER) && defined(_M_ARM64) && !defined(__clang__)))
-#define DATAFORGE_SHA256_ACCEL_CAN_COMPILE_ARM_SHA2 1
-#else
-#define DATAFORGE_SHA256_ACCEL_CAN_COMPILE_ARM_SHA2 0
-#endif
-
-#if DATAFORGE_SHA256_ACCEL_FORCE >= 0
-#define DATAFORGE_SHA256_ACCEL_IMPL DATAFORGE_SHA256_ACCEL_FORCE
-#elif DATAFORGE_SHA256_ACCEL_AUTODETECT
-#define DATAFORGE_SHA256_ACCEL_IMPL DATAFORGE_SHA256_ACCEL_AUTODETECT_MODE
-#else
-#define DATAFORGE_SHA256_ACCEL_IMPL DATAFORGE_SHA256_ACCEL_NONE
-#endif
-
-#if DATAFORGE_SHA256_ACCEL_IMPL == DATAFORGE_SHA256_ACCEL_X86_SHA
-#if !DATAFORGE_SHA256_ACCEL_CAN_COMPILE_X86_SHA
-#undef DATAFORGE_SHA256_ACCEL_IMPL
-#define DATAFORGE_SHA256_ACCEL_IMPL DATAFORGE_SHA256_ACCEL_NONE
-#endif
-#elif DATAFORGE_SHA256_ACCEL_IMPL == DATAFORGE_SHA256_ACCEL_ARM_SHA2
-#if !DATAFORGE_SHA256_ACCEL_CAN_COMPILE_ARM_SHA2
-#undef DATAFORGE_SHA256_ACCEL_IMPL
-#define DATAFORGE_SHA256_ACCEL_IMPL DATAFORGE_SHA256_ACCEL_NONE
+#elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_ARM
+#if !DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA2
+#undef DATAFORGE_ACCEL_IMPL
+#define DATAFORGE_ACCEL_IMPL DATAFORGE_ACCEL_NONE
 #endif
 #endif
 

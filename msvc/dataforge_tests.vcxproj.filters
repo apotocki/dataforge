@@ -620,5 +620,8 @@
     <ClInclude Include="..\include\dataforge\detail\hashes\sha2_intrinsics_x86.ipp">
       <Filter>dataforge\detail\hashes</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\config.hpp">
+      <Filter>dataforge\detail</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
