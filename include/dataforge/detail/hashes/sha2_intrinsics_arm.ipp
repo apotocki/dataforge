@@ -1,23 +1,23 @@
 /*=============================================================================
-    Copyright (c) Alexander Pototskiy
+    Copyright (c) 2026 Alexander Pototskiy
 
     Use, modification and distribution is subject to the Boost Software
     License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
     http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
 
-#if DATAFORGE_SHA256_ACCEL_CAN_COMPILE_ARM_SHA2
+#if DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA2
 
 #include <arm_neon.h>
 
-#if DATAFORGE_SHA256_ACCEL_AUTODETECT && defined(__linux__) && (defined(__aarch64__) || defined(__arm__))
+#if DATAFORGE_ACCEL_AUTODETECT && defined(__linux__) && (defined(__aarch64__) || defined(__arm__))
 #include <sys/auxv.h>
 #include <asm/hwcap.h>
 #endif
 
 namespace dataforge::sha2_detail {
 
-#if DATAFORGE_SHA256_ACCEL_IMPL == DATAFORGE_SHA256_ACCEL_AUTODETECT_MODE
+#if DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_AUTODETECT_MODE
 inline bool sha256_runtime_has_sha256_accel()
 {
 #if defined(__linux__) && (defined(__aarch64__) || defined(__arm__))

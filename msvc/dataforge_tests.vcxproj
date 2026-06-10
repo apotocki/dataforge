@@ -346,6 +346,7 @@
     <ClInclude Include="..\include\dataforge\detail\compression\lzma.hpp" />
     <ClInclude Include="..\include\dataforge\detail\compression\lzma_compressor.hpp" />
     <ClInclude Include="..\include\dataforge\detail\compression\lzma_extractor.hpp" />
+    <ClInclude Include="..\include\dataforge\detail\config.hpp" />
     <ClInclude Include="..\include\dataforge\detail\crc\bytes_to_crc16_pusher.hpp" />
     <ClInclude Include="..\include\dataforge\detail\crc\bytes_to_crc32_pusher.hpp" />
     <ClInclude Include="..\include\dataforge\detail\crc\bytes_to_crc64_pusher.hpp" />

@@ -137,16 +137,16 @@ However, the test suite depends on external libraries (**zlib, icu, bzip2, lz4, 
 
 **No global vcpkg integration (`vcpkg integrate install`) is required** — everything is local to the repository.
 
-## SHA-256 Hardware Acceleration Flags
+## Hardware Acceleration Flags
 
 SHA-224 and SHA-256 now support compile-time selectable hardware-accelerated block processing.
 
 Configuration is controlled by two macros:
 
-- `DATAFORGE_SHA256_ACCEL_AUTODETECT` (default `1`)
+- `DATAFORGE_ACCEL_AUTODETECT` (default `1`)
   - `1`: auto-detect available backend from target ISA macros.
   - `0`: disable auto-detection.
-- `DATAFORGE_SHA256_ACCEL_FORCE` (default `-1`)
+- `DATAFORGE_ACCEL_FORCE` (default `-1`)
   - `-1`: use auto-detection result.
   - `0`: force scalar implementation.
   - `1`: force x86 SHA extension backend.
@@ -162,15 +162,15 @@ If a backend is forced but required ISA macros are unavailable, DataForge safely
 ### CMake configuration examples
 
 ```bash
-cmake -S . -B build -DDATAFORGE_SHA256_ACCEL_AUTODETECT=ON -DDATAFORGE_SHA256_ACCEL_FORCE=-1
-cmake -S . -B build -DDATAFORGE_SHA256_ACCEL_AUTODETECT=OFF -DDATAFORGE_SHA256_ACCEL_FORCE=2
-cmake -S . -B build -DDATAFORGE_SHA256_ACCEL_AUTODETECT=OFF -DDATAFORGE_SHA256_ACCEL_FORCE=0
+cmake -S . -B build -DDATAFORGE_ACCEL_AUTODETECT=ON -DDATAFORGE_ACCEL_FORCE=-1
+cmake -S . -B build -DDATAFORGE_ACCEL_AUTODETECT=OFF -DDATAFORGE_ACCEL_FORCE=2
+cmake -S . -B build -DDATAFORGE_ACCEL_AUTODETECT=OFF -DDATAFORGE_ACCEL_FORCE=0
 ```
 
 ### Direct compiler defines (without CMake options)
 
 ```bash
--DDATAFORGE_SHA256_ACCEL_AUTODETECT=1 -DDATAFORGE_SHA256_ACCEL_FORCE=-1
+-DDATAFORGE_ACCEL_AUTODETECT=1 -DDATAFORGE_ACCEL_FORCE=-1
 ```
 
 ## License
