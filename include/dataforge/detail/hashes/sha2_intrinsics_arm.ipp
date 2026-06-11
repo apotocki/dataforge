@@ -57,7 +57,7 @@ inline uint32_t sha256_load_be32_arm(const uint8_t* src)
         | static_cast<uint32_t>(src[3]);
 }
 
-inline void process_block_sha256_arm(uint32_t state[8], const void* msg)
+inline void process_block_sha256_arm(uint32_t(&state)[8], const void* msg)
 {
     uint32_t W[64];
     const auto* data = reinterpret_cast<const uint8_t*>(msg);
