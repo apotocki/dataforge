@@ -23,7 +23,7 @@ namespace dataforge::sha2_detail {
 
 namespace dataforge::sha2_detail {
 
-inline const sha2_def_base<256>::word_type sha2_def_base<256>::K[64] = {
+alignas(16) inline const sha2_def_base<256>::word_type sha2_def_base<256>::K[64] = {
     UINT32_C(0x428a2f98), UINT32_C(0x71374491), UINT32_C(0xb5c0fbcf),
     UINT32_C(0xe9b5dba5), UINT32_C(0x3956c25b), UINT32_C(0x59f111f1),
     UINT32_C(0x923f82a4), UINT32_C(0xab1c5ed5), UINT32_C(0xd807aa98),

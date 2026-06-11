@@ -4,8 +4,8 @@ project(dataforge_tests LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(DATAFORGE_SHA256_ACCEL_AUTODETECT "Enable SHA-256 acceleration auto-detection" ON)
-set(DATAFORGE_SHA256_ACCEL_FORCE "-1" CACHE STRING "SHA-256 acceleration override: -1 auto, 0 none, 1 x86 SHA, 2 ARM SHA2")
+option(DATAFORGE_ACCEL_AUTODETECT "Enable SHA-256 acceleration auto-detection" ON)
+set(DATAFORGE_ACCEL_FORCE "-1" CACHE STRING "SHA-256 acceleration override: -1 auto, 0 none, 1 x86 SHA, 2 ARM SHA2")
 
 
 # Enable folders in IDEs
@@ -91,8 +91,8 @@ add_executable(dataforge_tests ${DATAFORGE_TEST_SOURCES})
 target_include_directories(dataforge_tests PRIVATE include)
 
 target_compile_definitions(dataforge_tests PRIVATE
-  DATAFORGE_SHA256_ACCEL_AUTODETECT=$<IF:$<BOOL:${DATAFORGE_SHA256_ACCEL_AUTODETECT}>,1,0>
-  DATAFORGE_SHA256_ACCEL_FORCE=${DATAFORGE_SHA256_ACCEL_FORCE}
+  DATAFORGE_ACCEL_AUTODETECT=$<IF:$<BOOL:${DATAFORGE_ACCEL_AUTODETECT}>,1,0>
+  DATAFORGE_ACCEL_FORCE=${DATAFORGE_ACCEL_FORCE}
 )
 
 # Nice warnings for GCC/Clang
