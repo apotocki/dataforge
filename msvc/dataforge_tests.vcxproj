@@ -375,7 +375,6 @@
     <ClInclude Include="..\include\dataforge\detail\hashes\sha1.ipp" />
     <ClInclude Include="..\include\dataforge\detail\hashes\sha2.hpp" />
     <ClInclude Include="..\include\dataforge\detail\hashes\sha2.ipp" />
-    <ClInclude Include="..\include\dataforge\detail\hashes\sha2_intrinsics.hpp" />
     <ClInclude Include="..\include\dataforge\detail\hashes\sha2_intrinsics_arm.ipp" />
     <ClInclude Include="..\include\dataforge\detail\hashes\sha2_intrinsics_x86.ipp" />
     <ClInclude Include="..\include\dataforge\detail\hashes\sha3.hpp" />

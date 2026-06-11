@@ -274,12 +274,17 @@ template <typename CvtTupleT>
 struct cvt_tuple_wrapper
 {
     CvtTupleT tuple;
-
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
     template <size_t ... I, typename Tuple>
     cvt_tuple_wrapper(std::index_sequence<I ...>, Tuple const& t)
         : tuple{ std::tuple_element_t<I, CvtTupleT>{ as_finish(std::get<I>(t)), as_start(std::get<I + 1>(t)) } ... }
     {}
-
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
     template <typename ... Quarks>
     cvt_tuple_wrapper(quark_chain<CvtTupleT, std::tuple<Quarks ...>> const& chain)
         : cvt_tuple_wrapper(std::make_index_sequence<(sizeof ... (Quarks)) - 1>(), chain.quarks)

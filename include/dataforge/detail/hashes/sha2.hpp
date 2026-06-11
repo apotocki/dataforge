@@ -11,13 +11,18 @@
 
 #include "../utility/digest_base.hpp"
 
-#if DATAFORGE_TARGET_X86 && (defined(__SHA__) || (defined(_MSC_VER) && !defined(__clang__)))
+// X86 SHA-NI: available on MSVC unconditionally; on GCC/Clang enabled via
+// #pragma GCC target("sha") / __attribute__((target("sha"))) in the .ipp file,
+// so we only gate on the architecture here.
+#if DATAFORGE_TARGET_X86
 #define DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA 1
 #else
 #define DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA 0
 #endif
 
-#if DATAFORGE_TARGET_ARM && (defined(__ARM_FEATURE_SHA2) || (defined(_MSC_VER) && defined(_M_ARM64) && !defined(__clang__)))
+// ARM SHA2: AArch64 only; GCC/Clang require -march=armv8-a+crypto or
+// #pragma GCC target("arch=armv8-a+sha2") — handled in the .ipp file.
+#if DATAFORGE_TARGET_ARM64
 #define DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA2 1
 #else
 #define DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA2 0
@@ -53,7 +58,7 @@ struct sha2_def_base<256>
     static const int input_length_size = 8;
     static const int word_type_byte_count = 4;
 
-    static const word_type K[64];
+    alignas(16) static const word_type K[64];
 
     // values for Sigma and sigma functions
     static const word_type S0[3];

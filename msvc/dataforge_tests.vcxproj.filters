@@ -611,9 +611,6 @@
     <ClInclude Include="..\include\dataforge\detail\hashes\sha_qrk.hpp">
       <Filter>dataforge\detail\hashes</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\dataforge\detail\hashes\sha2_intrinsics.hpp">
-      <Filter>dataforge\detail\hashes</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\dataforge\detail\hashes\sha2_intrinsics_arm.ipp">
       <Filter>dataforge\detail\hashes</Filter>
     </ClInclude>
