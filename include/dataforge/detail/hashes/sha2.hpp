@@ -134,6 +134,8 @@ struct sha2_impl : sha2_impl_base<Type>
     using digest_word_type = word_type;
     static constexpr size_t digest_word_bit_count = word_bit_count;
 
+    static constexpr size_t state_size = 8;
+
     sha2_impl();
 
     void reset();
@@ -141,7 +143,8 @@ struct sha2_impl : sha2_impl_base<Type>
     void process_block(const void* msg);
     void store_bit_count(void* dst) const;
 
-    static constexpr size_t state_size = 8;
+    static void process_block_scalar(word_type(&state)[state_size], const void* msg) noexcept;
+
     inline std::span<digest_word_type, state_size> digest_span() { return H; }
 
 private:
@@ -165,7 +168,7 @@ private:
         return right_rotate<word_bit_count>(x, y[0]) ^ right_rotate<word_bit_count>(x, y[1]) ^ (x >> y[2]);
     }
 
-    word_type H[state_size];
+    alignas(2 * state_size) word_type H[state_size];
 };
 
 }}

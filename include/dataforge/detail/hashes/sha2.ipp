@@ -168,59 +168,50 @@ void sha2_impl<Type>::reset()
 }
 
 template<sha2_type Type>
-void sha2_impl<Type>::process_block(const void* msg)
+inline void sha2_impl<Type>::process_block(const void* msg)
 {
 #if DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_AUTODETECT_MODE || DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_X86 || DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_ARM
     if constexpr (Type == sha2_type::sha224 || Type == sha2_type::sha256)
     {
-        using sha256_block_fn_t = void(*)(uint32_t[8], const void*);
+        using sha256_block_fn_t = void(*)(uint32_t(&)[8], const void*);
         static const sha256_block_fn_t process_block_impl = []() -> sha256_block_fn_t {
 #if DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_AUTODETECT_MODE
             if (!sha256_runtime_has_sha256_accel())
-                return nullptr;
+                return &sha2_impl<Type>::process_block_scalar;
 #if DATAFORGE_TARGET_X86 && DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA
             return &process_block_sha256_x86;
 #elif DATAFORGE_TARGET_ARM && DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA2
             return &process_block_sha256_arm;
 #else
-            return nullptr;
+            return &sha2_impl<Type>::process_block_scalar;
 #endif
 #elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_X86
 #if DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA
             return &process_block_sha256_x86;
 #else
-            return nullptr;
+            return &sha2_impl<Type>::process_block_scalar;
 #endif
 #elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_ARM
 #if DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA2
             return &process_block_sha256_arm;
 #else
-            return nullptr;
+            return &sha2_impl<Type>::process_block_scalar;
 #endif
 #else
-            return nullptr;
+            return &sha2_impl<Type>::process_block_scalar;
 #endif
         }();
 
-        if (process_block_impl)
-        {
-#if 0
-            uint32_t state32[state_size];
-            for (int i = 0; i < static_cast<int>(state_size); ++i)
-                state32[i] = static_cast<uint32_t>(H[i]);
-
-            process_block_impl(state32, msg);
-
-            for (int i = 0; i < static_cast<int>(state_size); ++i)
-                H[i] = static_cast<word_type>(state32[i]);
-#else
-            process_block_impl(H, msg);
-#endif
-            return;
-        }
+        process_block_impl(H, msg);
+    } else {
+        process_block_scalar(H, msg);
     }
 #endif
+}
 
+template<sha2_type Type>
+void sha2_impl<Type>::process_block_scalar(word_type (&state)[state_size], const void* msg) noexcept
+{
     word_type Ws[sha2_impl::message_schedule_length];
 
     static_assert(sizeof(word_type) * sha2_impl::message_schedule_length >= sha2_impl::block_size);
@@ -231,7 +222,7 @@ void sha2_impl<Type>::process_block(const void* msg)
         + sigma(W[t - 15], sha2_impl::s0) + W[t - 16];
 
     word_type Y[8];
-    std::memcpy(Y, H, sizeof(Y));
+    std::memcpy(Y, state, sizeof(Y));
 
     for (int t = 0; t < sha2_impl::message_schedule_length; ++t)
     {
@@ -249,7 +240,7 @@ void sha2_impl<Type>::process_block(const void* msg)
     }
 
     for (int i = 0; i < 8; ++i)
-        H[i] += Y[i];
+        state[i] += Y[i];
 }
 
 template<sha2_type Type>
