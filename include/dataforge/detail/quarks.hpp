@@ -105,32 +105,32 @@ inline FinishT const& as_finish(compound_qrk<StartT, FinishT> const& quark) noex
 ///////// basic routines
 using cchar_span_t = std::span<const char>;
 using cbyte_span_t = std::span<const unsigned char>;
-inline cbyte_span_t operator "" _bs(const char* str, std::size_t n)
+inline cbyte_span_t operator ""_bs(const char* str, std::size_t n)
 {
     return std::span{reinterpret_cast<const unsigned char*>(str), n};
 }
 
-inline auto operator "" _sp(const char* str, std::size_t n)
+inline auto operator ""_sp(const char* str, std::size_t n)
 {
     return std::span{str, n};
 }
 
-inline auto operator "" _sp(const char8_t* str, std::size_t n)
+inline auto operator ""_sp(const char8_t* str, std::size_t n)
 {
     return std::span{str, n};
 }
 
-inline auto operator "" _sp(const char16_t* str, std::size_t n)
+inline auto operator ""_sp(const char16_t* str, std::size_t n)
 {
     return std::span{ str, n };
 }
 
-inline auto operator "" _sp(const char32_t* str, std::size_t n)
+inline auto operator ""_sp(const char32_t* str, std::size_t n)
 {
     return std::span{ str, n };
 }
 
-inline auto operator "" _sp(const wchar_t* str, std::size_t n)
+inline auto operator ""_sp(const wchar_t* str, std::size_t n)
 {
     return std::span{str, n};
 }
