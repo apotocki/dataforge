@@ -12,12 +12,19 @@
 #include "../utility/digest_base.hpp"
 
 // X86 SHA-NI: available on MSVC unconditionally; on GCC/Clang enabled via
-// #pragma GCC target("sha") / __attribute__((target("sha"))) in the .ipp file,
+// __attribute__((target("sha,sse4.1"))) on the function in the .ipp file,
 // so we only gate on the architecture here.
+//
+// X86 AVX-512 (F + VL) vectorized message schedule: same story — the intrinsics
+// are enabled per-function via __attribute__((target("avx512f,avx512vl,sse4.1")))
+// on GCC/Clang and are always available on MSVC, so the only compile-time
+// requirement is that we are generating code for an x86 target.
 #if DATAFORGE_TARGET_X86
 #define DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA 1
+#define DATAFORGE_ACCEL_CAN_COMPILE_X86_AVX512 1
 #else
 #define DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA 0
+#define DATAFORGE_ACCEL_CAN_COMPILE_X86_AVX512 0
 #endif
 
 // ARM SHA2: AArch64 only; GCC/Clang require -march=armv8-a+crypto or
@@ -58,7 +65,9 @@ struct sha2_def_base<256>
     static const int input_length_size = 8;
     static const int word_type_byte_count = 4;
 
-    alignas(16) static const word_type K[64];
+    // 64-byte aligned so the SIMD backends can use aligned vector loads
+    // (_mm_load_si128 / vld1q_u32) when folding the round constants in.
+    alignas(64) static const word_type K[64];
 
     // values for Sigma and sigma functions
     static const word_type S0[3];
@@ -75,7 +84,7 @@ struct sha2_def_base<512>
     static const int input_length_size = 16;
     static const int word_type_byte_count = 8;
 
-    static const word_type K[80];
+    alignas(64) static const word_type K[80];
 
     // values for Sigma and sigma functions
     static const word_type S0[3];

@@ -11,6 +11,7 @@
 
 #if DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA
 #   include "sha2_intrinsics_x86.ipp"
+#   include "sha512_intrinsics_x86.ipp"
 #elif DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA2
 #   include "sha2_intrinsics_arm.ipp"
 #endif
@@ -18,12 +19,15 @@
 #if DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_AUTODETECT_MODE
 namespace dataforge::sha2_detail {
     inline bool sha256_runtime_has_sha256_accel();
+#if DATAFORGE_TARGET_X86 && DATAFORGE_ACCEL_CAN_COMPILE_X86_AVX512
+    inline bool x86_runtime_has_avx512();
+#endif
 }
 #endif
 
 namespace dataforge::sha2_detail {
 
-alignas(16) inline const sha2_def_base<256>::word_type sha2_def_base<256>::K[64] = {
+alignas(64) inline const sha2_def_base<256>::word_type sha2_def_base<256>::K[64] = {
     UINT32_C(0x428a2f98), UINT32_C(0x71374491), UINT32_C(0xb5c0fbcf),
     UINT32_C(0xe9b5dba5), UINT32_C(0x3956c25b), UINT32_C(0x59f111f1),
     UINT32_C(0x923f82a4), UINT32_C(0xab1c5ed5), UINT32_C(0xd807aa98),
@@ -53,7 +57,7 @@ inline const sha2_def_base<256>::word_type sha2_def_base<256>::S1[3] = { 6, 11, 
 inline const sha2_def_base<256>::word_type sha2_def_base<256>::s0[3] = { 7, 18,  3 };
 inline const sha2_def_base<256>::word_type sha2_def_base<256>::s1[3] = { 17, 19, 10 };
 
-inline const sha2_def_base<512>::word_type sha2_def_base<512>::K[80] = {
+alignas(64) inline const sha2_def_base<512>::word_type sha2_def_base<512>::K[80] = {
   UINT64_C(0x428a2f98d728ae22), UINT64_C(0x7137449123ef65cd),
   UINT64_C(0xb5c0fbcfec4d3b2f), UINT64_C(0xe9b5dba58189dbbc),
   UINT64_C(0x3956c25bf348b538), UINT64_C(0x59f111f1b605d019),
@@ -221,43 +225,84 @@ void sha2_impl<Type>::store_bit_count(void* dst) const
 template<sha2_type Type>
 inline void sha2_impl<Type>::process_block(const void* msg)
 {
-#if DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_AUTODETECT_MODE || DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_X86 || DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_ARM
     if constexpr (Type == sha2_type::sha224 || Type == sha2_type::sha256)
     {
+        // SHA-224/SHA-256 (32-bit words). SHA-NI is the default hardware path;
+        // the AVX-512 schedule is used only when explicitly opted in via
+        // DATAFORGE_ACCEL_X86_SHA256_USE_AVX512 (SHA-NI is faster per block).
+#if DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_AUTODETECT_MODE
+        // Probe the running CPU once and cache the best available block function.
         using sha256_block_fn_t = void(*)(uint32_t(&)[8], const void*);
         static const sha256_block_fn_t process_block_impl = []() -> sha256_block_fn_t {
-#if DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_AUTODETECT_MODE
-            if (!sha256_runtime_has_sha256_accel())
-                return &sha2_impl<Type>::process_block_scalar;
 #if DATAFORGE_TARGET_X86 && DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA
-            return &process_block_sha256_x86;
+#if DATAFORGE_ACCEL_X86_SHA256_USE_AVX512
+            if (x86_runtime_has_avx512())
+                return &process_block_sha256_x86_avx512;
+#endif
+            if (sha256_runtime_has_sha256_accel())
+                return &process_block_sha256_x86;
+            return &sha2_impl<Type>::process_block_scalar;
 #elif DATAFORGE_TARGET_ARM && DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA2
-            return &process_block_sha256_arm;
-#else
+            if (sha256_runtime_has_sha256_accel())
+                return &process_block_sha256_arm;
             return &sha2_impl<Type>::process_block_scalar;
-#endif
-#elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_X86
-#if DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA
-            return &process_block_sha256_x86;
-#else
-            return &sha2_impl<Type>::process_block_scalar;
-#endif
-#elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_ARM
-#if DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA2
-            return &process_block_sha256_arm;
-#else
-            return &sha2_impl<Type>::process_block_scalar;
-#endif
 #else
             return &sha2_impl<Type>::process_block_scalar;
 #endif
         }();
-
         process_block_impl(H, msg);
-    } else {
-        process_block_scalar(H, msg);
-    }
+
+#elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_X86
+        // Forced x86 backend: emit the intrinsic implementation directly, with no
+        // run-time CPU probing (the caller asserts the CPU supports it). We still
+        // only emit code the *compilation target* can encode — that compile-time
+        // guarantee is what DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA reflects, and a
+        // forced-x86 build on a non-x86 target is downgraded to scalar in sha2.hpp.
+        // AVX-512 is used only when opted in AND the build targets AVX-512.
+#if DATAFORGE_ACCEL_X86_SHA256_USE_AVX512 && defined(__AVX512F__) && defined(__AVX512VL__)
+        process_block_sha256_x86_avx512(H, msg);
+#else
+        process_block_sha256_x86(H, msg);
 #endif
+
+#elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_ARM
+        process_block_sha256_arm(H, msg);
+
+#else // DATAFORGE_ACCEL_NONE
+        process_block_scalar(H, msg);
+#endif
+    }
+    else
+    {
+        // SHA-384 / SHA-512 / SHA-512-224 / SHA-512-256 (64-bit words). There is
+        // no SHA-NI equivalent for these, but the AVX-512 vectorized message
+        // schedule beats scalar, so it is used by default in auto-detect whenever
+        // the CPU supports AVX-512.
+#if DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_AUTODETECT_MODE
+#if DATAFORGE_TARGET_X86 && DATAFORGE_ACCEL_CAN_COMPILE_X86_AVX512
+        using sha512_block_fn_t = void(*)(uint64_t(&)[8], const void*);
+        static const sha512_block_fn_t process_block_impl = []() -> sha512_block_fn_t {
+            if (x86_runtime_has_avx512())
+                return &process_block_sha512_x86_avx512;
+            return &sha2_impl<Type>::process_block_scalar;
+        }();
+        process_block_impl(H, msg);
+#else
+        process_block_scalar(H, msg);
+#endif
+
+#elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_X86
+        // Forced x86: emit AVX-512 directly when the build targets it, else scalar.
+#if defined(__AVX512F__) && defined(__AVX512VL__)
+        process_block_sha512_x86_avx512(H, msg);
+#else
+        process_block_scalar(H, msg);
+#endif
+
+#else // ARM / NONE: no 64-bit hardware path
+        process_block_scalar(H, msg);
+#endif
+    }
 }
 
 }
