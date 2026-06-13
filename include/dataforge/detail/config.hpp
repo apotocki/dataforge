@@ -31,6 +31,15 @@
 #define DATAFORGE_ACCEL_AUTODETECT_MODE 3
 #endif
 
+// Opt-in: use the x86 AVX-512 message-schedule backend for SHA-224/SHA-256
+// instead of SHA-NI. SHA-NI is faster for a single block, so this is off by
+// default; it only makes sense on parts where AVX-512 is preferable for the
+// caller's workload. Has no effect unless an x86 AVX-512 capable CPU is present
+// (auto-detect) or the build targets AVX-512 (forced x86).
+#ifndef DATAFORGE_ACCEL_X86_SHA256_USE_AVX512
+#define DATAFORGE_ACCEL_X86_SHA256_USE_AVX512 0
+#endif
+
 #if defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86)
 #define DATAFORGE_TARGET_X86 1
 #else
