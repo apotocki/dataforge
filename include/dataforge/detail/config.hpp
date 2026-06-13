@@ -66,7 +66,7 @@
 #define DATAFORGE_ACCEL_IMPL DATAFORGE_ACCEL_NONE
 #endif
 
-//#if DATAFORGE_TARGET_X86 == 1
+#if DATAFORGE_TARGET_X86 == 1
 // Per-function ISA selection. On GCC/Clang each accelerated routine carries its
 // own target attribute, so the file compiles even when the global -m flags do
 // not enable SHA / AVX-512; the run-time dispatcher only ever calls a routine on
@@ -84,4 +84,4 @@
 #   define DATAFORGE_SSE41_TARGET
 #   define DATAFORGE_FORCEINLINE    __forceinline
 #endif
-//#endif
+#endif

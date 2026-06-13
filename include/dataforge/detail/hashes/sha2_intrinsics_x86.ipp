@@ -13,8 +13,6 @@
 #if DATAFORGE_ACCEL_AUTODETECT
 #if defined(_MSC_VER)
 #include <intrin.h>
-#elif defined(__GNUC__) || defined(__clang__)
-#include <cpuid.h>
 #endif
 #endif
 
@@ -32,13 +30,7 @@ inline bool sha256_runtime_has_sha256_accel()
     __cpuidex(regs, 7, 0);
     return (regs[1] & (1 << 29)) != 0;
 #elif (defined(__GNUC__) || defined(__clang__)) && (defined(__x86_64__) || defined(__i386__))
-    unsigned int eax = 0;
-    unsigned int ebx = 0;
-    unsigned int ecx = 0;
-    unsigned int edx = 0;
-    if (__get_cpuid_count(7, 0, &eax, &ebx, &ecx, &edx) == 0)
-        return false;
-    return (ebx & (1u << 29)) != 0;
+    return __builtin_cpu_supports("sha");
 #else
     return true;
 #endif
