@@ -235,21 +235,21 @@ inline void sha2_impl<Type>::process_block(const void* msg)
         // Probe the running CPU once and cache the best available block function.
         using sha256_block_fn_t = void(*)(uint32_t(&)[8], const void*);
         static const sha256_block_fn_t process_block_impl = []() -> sha256_block_fn_t {
-#if DATAFORGE_TARGET_X86 && DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA
-#if DATAFORGE_ACCEL_X86_SHA256_USE_AVX512
+#   if DATAFORGE_TARGET_X86 && DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA
+#       if DATAFORGE_ACCEL_X86_SHA256_USE_AVX512
             if (x86_runtime_has_avx512())
                 return &process_block_sha256_x86_avx512;
-#endif
+#       endif
             if (sha256_runtime_has_sha256_accel())
                 return &process_block_sha256_x86;
             return &sha2_impl<Type>::process_block_scalar;
-#elif DATAFORGE_TARGET_ARM && DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA2
+#   elif DATAFORGE_TARGET_ARM && DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA2
             if (sha256_runtime_has_sha256_accel())
                 return &process_block_sha256_arm;
             return &sha2_impl<Type>::process_block_scalar;
-#else
+#   else
             return &sha2_impl<Type>::process_block_scalar;
-#endif
+#   endif
         }();
         process_block_impl(H, msg);
 
@@ -260,11 +260,11 @@ inline void sha2_impl<Type>::process_block(const void* msg)
         // guarantee is what DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA reflects, and a
         // forced-x86 build on a non-x86 target is downgraded to scalar in sha2.hpp.
         // AVX-512 is used only when opted in AND the build targets AVX-512.
-#if DATAFORGE_ACCEL_X86_SHA256_USE_AVX512 && defined(__AVX512F__) && defined(__AVX512VL__)
+#   if DATAFORGE_ACCEL_X86_SHA256_USE_AVX512 && defined(__AVX512F__) && defined(__AVX512VL__)
         process_block_sha256_x86_avx512(H, msg);
-#else
+#   else
         process_block_sha256_x86(H, msg);
-#endif
+#   endif
 
 #elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_ARM
         process_block_sha256_arm(H, msg);

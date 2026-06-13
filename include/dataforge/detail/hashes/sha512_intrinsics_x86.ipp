@@ -22,15 +22,6 @@
 // Both paths share the 8-way unrolled scalar compression rounds via the
 // DATAFORGE_SHA512_ROUND macro, which eliminates the 7 register-move
 // instructions that the naïve loop emits per round.
-#if defined(__GNUC__) || defined(__clang__)
-#   define DATAFORGE_AVX512_TARGET  __attribute__((target("avx512f,avx512vl,sse4.1")))
-#   define DATAFORGE_SSE41_TARGET   __attribute__((target("sse4.1")))
-#   define DATAFORGE_FORCEINLINE    inline __attribute__((always_inline))
-#else
-#   define DATAFORGE_AVX512_TARGET
-#   define DATAFORGE_SSE41_TARGET
-#   define DATAFORGE_FORCEINLINE    __forceinline
-#endif
 
 namespace dataforge::sha2_detail {
 
@@ -233,9 +224,5 @@ inline void process_block_sha512_x86_sse41(uint64_t(&state)[8], const void* msg)
 #undef DATAFORGE_SHA512_ROUND
 
 }
-
-#undef DATAFORGE_AVX512_TARGET
-#undef DATAFORGE_SSE41_TARGET
-#undef DATAFORGE_FORCEINLINE
 
 #endif
