@@ -20,6 +20,7 @@
 namespace dataforge::sha2_detail {
     inline bool sha256_runtime_has_sha256_accel();
 #if DATAFORGE_TARGET_X86 && DATAFORGE_ACCEL_CAN_COMPILE_X86_AVX512
+    inline bool x86_runtime_has_sse41();
     inline bool x86_runtime_has_avx512();
 #endif
 }
@@ -284,6 +285,8 @@ inline void sha2_impl<Type>::process_block(const void* msg)
         static const sha512_block_fn_t process_block_impl = []() -> sha512_block_fn_t {
             if (x86_runtime_has_avx512())
                 return &process_block_sha512_x86_avx512;
+            if (x86_runtime_has_sse41())
+                return &process_block_sha512_x86_sse41;
             return &sha2_impl<Type>::process_block_scalar;
         }();
         process_block_impl(H, msg);
@@ -292,9 +295,11 @@ inline void sha2_impl<Type>::process_block(const void* msg)
 #endif
 
 #elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_X86
-        // Forced x86: emit AVX-512 directly when the build targets it, else scalar.
+        // Forced x86: pick the best statically-available ISA level.
 #if defined(__AVX512F__) && defined(__AVX512VL__)
         process_block_sha512_x86_avx512(H, msg);
+#elif defined(__SSE4_1__)
+        process_block_sha512_x86_sse41(H, msg);
 #else
         process_block_scalar(H, msg);
 #endif

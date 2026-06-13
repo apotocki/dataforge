@@ -60,6 +60,21 @@ inline bool sha256_runtime_has_sha256_accel()
 #endif
 }
 
+// CPUID leaf 1, ECX bit 19 -> SSE4.1. Used by the SHA-512 SSE4.1 backend
+// which is selected on x86-64 CPUs that lack AVX-512 (e.g. Raptor Lake desktop).
+inline bool x86_runtime_has_sse41()
+{
+#if defined(_MSC_VER) && (defined(_M_X64) || defined(_M_IX86))
+    int regs[4] = { 0, 0, 0, 0 };
+    __cpuid(regs, 1);
+    return (regs[2] & (1 << 19)) != 0;
+#elif (defined(__GNUC__) || defined(__clang__)) && (defined(__x86_64__) || defined(__i386__))
+    return __builtin_cpu_supports("sse4.1");
+#else
+    return false;
+#endif
+}
+
 // AVX-512 Foundation (F) + Vector Length (VL). VL is required because the
 // vectorized message schedules operate on 128-bit (xmm) EVEX operands. We also
 // verify the OS has enabled the full AVX-512 register state via XCR0, otherwise

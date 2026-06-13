@@ -165,12 +165,19 @@ Configuration is controlled by these macros:
 - **x86 SHA-NI** — Intel SHA Extensions (`_mm_sha256rnds2` / `msg1` / `msg2`).
   Fastest single-block path for SHA-224/SHA-256; requires an x86 target.
 - **x86 AVX-512** — vectorized message schedule (AVX-512F + AVX-512VL, using the
-  `vprord` / `vprorq` vector rotate) with scalar compression rounds.
+  `vprord` / `vprorq` vector rotate) with 8-way unrolled scalar compression rounds.
   - For **SHA-224/SHA-256** this is **opt-in** (`DATAFORGE_ACCEL_X86_SHA256_USE_AVX512=1`).
   - For **SHA-384 / SHA-512 / SHA-512-224 / SHA-512-256** there is no SHA-NI
     equivalent, so the AVX-512 schedule is the default hardware path and is
     preferred over scalar whenever the CPU supports AVX-512.
   - Requires an x86 target.
+- **x86 SSE4.1** — same two-wide XMM message schedule as the AVX-512 path, but
+  64-bit lane rotations are decomposed into shift-or pairs instead of using the
+  AVX-512VL `vprorq` instruction. Compression rounds are also 8-way unrolled.
+  Selected automatically for the **SHA-384 / SHA-512 / SHA-512-224 / SHA-512-256**
+  family on x86-64 CPUs that lack AVX-512 (e.g. Intel Raptor Lake / Alder Lake
+  desktop with both P- and E-cores active). Requires only SSE4.1, present on
+  virtually all x86-64 hardware since ~2008.
 - **ARM SHA2** — AArch64 crypto extensions (`vsha256hq` / `vsha256su*`), for
   SHA-224/SHA-256. Requires an ARM target.
 
@@ -187,14 +194,15 @@ register state (via `XCR0`), not just that the CPUID feature bits are present.
   - SHA-224/SHA-256 on x86: **SHA-NI** if present, else **scalar** (or, when
     `DATAFORGE_ACCEL_X86_SHA256_USE_AVX512=1`: **AVX-512** if present, then SHA-NI,
     then scalar).
-  - SHA-512 family on x86: **AVX-512** if present, else **scalar**.
+  - SHA-512 family on x86: **AVX-512** if present, else **SSE4.1** if present, else **scalar**.
   - SHA-224/SHA-256 on ARM: **SHA2** if present, else scalar.
 - **Forced x86 (`FORCE=1`)** — the intrinsic code is emitted **directly** with no
   run-time CPU probing; the caller guarantees the CPU supports it. SHA-224/SHA-256
   emit SHA-NI (or AVX-512 if `DATAFORGE_ACCEL_X86_SHA256_USE_AVX512=1` **and** the
   build targets AVX-512). The SHA-512 family emits AVX-512 when the build targets
   it (`-mavx512f -mavx512vl` or `/arch:AVX512`, i.e. `__AVX512F__ && __AVX512VL__`),
-  otherwise scalar. A forced-x86 build on a non-x86 target safely degrades to scalar.
+  otherwise **SSE4.1** if the build defines `__SSE4_1__` (e.g. `-msse4.1`), else scalar.
+  A forced-x86 build on a non-x86 target safely degrades to scalar.
 - **Forced scalar / acceleration disabled** — the portable scalar implementation
   is always used.
 
