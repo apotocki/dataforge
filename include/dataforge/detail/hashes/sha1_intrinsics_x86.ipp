@@ -10,12 +10,8 @@
 
 #include <immintrin.h>
 
-#if DATAFORGE_ACCEL_AUTODETECT
-#if defined(_MSC_VER)
+#if DATAFORGE_ACCEL_AUTODETECT && defined(_MSC_VER)
 #include <intrin.h>
-#elif defined(__GNUC__) || defined(__clang__)
-#include <cpuid.h>
-#endif
 #endif
 
 namespace dataforge::sha1_detail {
