@@ -67,6 +67,12 @@
     <Filter Include="examples">
       <UniqueIdentifier>{01c66899-443b-427d-b707-310904c70278}</UniqueIdentifier>
     </Filter>
+    <Filter Include="dataforge\detail\hashes\sha1">
+      <UniqueIdentifier>{11330ffb-1fc5-42f0-a88b-0d0692f7c461}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dataforge\detail\hashes\sha2">
+      <UniqueIdentifier>{088864a4-5090-4873-a7ee-4f4555999978}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\tests\test_baseN.cpp">
@@ -173,9 +179,6 @@
     <ClInclude Include="..\include\dataforge\detail\base_xx\bytes_to_base16_pusher.hpp">
       <Filter>dataforge\detail\base_xx</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\dataforge\detail\hashes\sha2.hpp">
-      <Filter>dataforge\detail\hashes</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\dataforge\detail\utility\counter.hpp">
       <Filter>dataforge\detail\utility</Filter>
     </ClInclude>
@@ -184,9 +187,6 @@
     </ClInclude>
     <ClInclude Include="..\include\dataforge\detail\utility\digest_base.hpp">
       <Filter>dataforge\detail\utility</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\dataforge\detail\hashes\sha2.ipp">
-      <Filter>dataforge\detail\hashes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dataforge\detail\base_xx\bytes_to_base58_pusher.hpp">
       <Filter>dataforge\detail\base_xx</Filter>
@@ -268,12 +268,6 @@
     </ClInclude>
     <ClInclude Include="..\include\dataforge\hashes\sha1.hpp">
       <Filter>dataforge\hashes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\dataforge\detail\hashes\sha1.hpp">
-      <Filter>dataforge\detail\hashes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\dataforge\detail\hashes\sha1.ipp">
-      <Filter>dataforge\detail\hashes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dataforge\hashes\sha3.hpp">
       <Filter>dataforge\hashes</Filter>
@@ -611,17 +605,35 @@
     <ClInclude Include="..\include\dataforge\detail\hashes\sha_qrk.hpp">
       <Filter>dataforge\detail\hashes</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\dataforge\detail\hashes\sha2_intrinsics_arm.ipp">
-      <Filter>dataforge\detail\hashes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\dataforge\detail\hashes\sha2_intrinsics_x86.ipp">
-      <Filter>dataforge\detail\hashes</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\dataforge\detail\config.hpp">
       <Filter>dataforge\detail</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha1.hpp">
+      <Filter>dataforge\detail\hashes\sha1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha1.ipp">
+      <Filter>dataforge\detail\hashes\sha1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha1_intrinsics_arm.ipp">
+      <Filter>dataforge\detail\hashes\sha1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha1_intrinsics_x86.ipp">
+      <Filter>dataforge\detail\hashes\sha1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha2.hpp">
+      <Filter>dataforge\detail\hashes\sha2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha2.ipp">
+      <Filter>dataforge\detail\hashes\sha2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha2_intrinsics_arm.ipp">
+      <Filter>dataforge\detail\hashes\sha2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha2_intrinsics_x86.ipp">
+      <Filter>dataforge\detail\hashes\sha2</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\dataforge\detail\hashes\sha512_intrinsics_x86.ipp">
-      <Filter>dataforge\detail\hashes</Filter>
+      <Filter>dataforge\detail\hashes\sha2</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -65,3 +65,23 @@
 #else
 #define DATAFORGE_ACCEL_IMPL DATAFORGE_ACCEL_NONE
 #endif
+
+//#if DATAFORGE_TARGET_X86 == 1
+// Per-function ISA selection. On GCC/Clang each accelerated routine carries its
+// own target attribute, so the file compiles even when the global -m flags do
+// not enable SHA / AVX-512; the run-time dispatcher only ever calls a routine on
+// a CPU that actually supports it. On MSVC the intrinsics are always available.
+// NB: CPU-detection helpers deliberately get NO target attribute — they must run
+// on the baseline ISA.
+#if defined(__GNUC__) || defined(__clang__)
+#   define DATAFORGE_SHA_TARGET     __attribute__((target("sha,sse4.1")))
+#   define DATAFORGE_AVX512_TARGET  __attribute__((target("avx512f,avx512vl,sse4.1")))
+#   define DATAFORGE_SSE41_TARGET   __attribute__((target("sse4.1")))
+#   define DATAFORGE_FORCEINLINE    inline __attribute__((always_inline))
+#else
+#   define DATAFORGE_SHA_TARGET
+#   define DATAFORGE_AVX512_TARGET
+#   define DATAFORGE_SSE41_TARGET
+#   define DATAFORGE_FORCEINLINE    __forceinline
+#endif
+//#endif
