@@ -184,7 +184,7 @@ void sha2_impl<Type>::reset()
 }
 
 template<sha2_type Type>
-void sha2_impl<Type>::process_block_scalar(word_type (&state)[state_size], const void* msg, size_t block_count) noexcept
+void sha2_impl<Type>::process_blocks_scalar(word_type (&state)[state_size], const void* msg, size_t block_count) noexcept
 {
     word_type Ws[sha2_impl::message_schedule_length];
 
@@ -229,7 +229,7 @@ void sha2_impl<Type>::store_bit_count(void* dst) const
 }
 
 template<sha2_type Type>
-inline void sha2_impl<Type>::process_block(const void* msg, size_t block_count)
+inline void sha2_impl<Type>::process_blocks(const void* msg, size_t block_count)
 {
     if constexpr (Type == sha2_type::sha224 || Type == sha2_type::sha256)
     {
@@ -239,24 +239,24 @@ inline void sha2_impl<Type>::process_block(const void* msg, size_t block_count)
 #if DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_AUTODETECT_MODE
         // Probe the running CPU once and cache the best available block function.
         using sha256_block_fn_t = void(*)(uint32_t(&)[8], const void*, size_t);
-        static const sha256_block_fn_t process_block_impl = []() -> sha256_block_fn_t {
+        static const sha256_block_fn_t process_blocks_impl = []() -> sha256_block_fn_t {
 #   if DATAFORGE_TARGET_X86 && DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA
 #       if DATAFORGE_ACCEL_X86_SHA256_USE_AVX512
             if (x86_runtime_has_avx512())
-                return &process_block_sha256_x86_avx512;
+                return &process_blocks_sha256_x86_avx512;
 #       endif
             if (sha256_runtime_has_sha256_accel())
-                return &process_block_sha256_x86;
-            return &sha2_impl<Type>::process_block_scalar;
+                return &process_blocks_sha256_x86;
+            return &sha2_impl<Type>::process_blocks_scalar;
 #   elif DATAFORGE_TARGET_ARM && DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA2
             if (sha256_runtime_has_sha256_accel())
-                return &process_block_sha256_arm;
-            return &sha2_impl<Type>::process_block_scalar;
+                return &process_blocks_sha256_arm;
+            return &sha2_impl<Type>::process_blocks_scalar;
 #   else
-            return &sha2_impl<Type>::process_block_scalar;
+            return &sha2_impl<Type>::process_blocks_scalar;
 #   endif
         }();
-        process_block_impl(H, msg, block_count);
+        process_blocks_impl(H, msg, block_count);
 
 #elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_X86
         // Forced x86 backend: emit the intrinsic implementation directly, with no
@@ -266,16 +266,16 @@ inline void sha2_impl<Type>::process_block(const void* msg, size_t block_count)
         // forced-x86 build on a non-x86 target is downgraded to scalar in sha2.hpp.
         // AVX-512 is used only when opted in AND the build targets AVX-512.
 #   if DATAFORGE_ACCEL_X86_SHA256_USE_AVX512 && defined(__AVX512F__) && defined(__AVX512VL__)
-        process_block_sha256_x86_avx512(H, msg);
+        process_blocks_sha256_x86_avx512(H, msg, block_count);
 #   else
-        process_block_sha256_x86(H, msg);
+        process_blocks_sha256_x86(H, msg, block_count);
 #   endif
 
 #elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_ARM
-        process_block_sha256_arm(H, msg, block_count);
+        process_blocks_sha256_arm(H, msg, block_count);
 
 #else // DATAFORGE_ACCEL_NONE
-        process_block_scalar(H, msg, block_count);
+        process_blocks_scalar(H, msg, block_count);
 #endif
     }
     else
@@ -287,30 +287,30 @@ inline void sha2_impl<Type>::process_block(const void* msg, size_t block_count)
 #if DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_AUTODETECT_MODE
 #if DATAFORGE_TARGET_X86 && DATAFORGE_ACCEL_CAN_COMPILE_X86_AVX512
         using sha512_block_fn_t = void(*)(uint64_t(&)[8], const void*, size_t);
-        static const sha512_block_fn_t process_block_impl = []() -> sha512_block_fn_t {
+        static const sha512_block_fn_t process_blocks_impl = []() -> sha512_block_fn_t {
             if (x86_runtime_has_avx512())
-                return &process_block_sha512_x86_avx512;
+                return &process_blocks_sha512_x86_avx512;
             if (x86_runtime_has_sse41())
-                return &process_block_sha512_x86_sse41;
-            return &sha2_impl<Type>::process_block_scalar;
+                return &process_blocks_sha512_x86_sse41;
+            return &sha2_impl<Type>::process_blocks_scalar;
         }();
-        process_block_impl(H, msg, block_count);
+        process_blocks_impl(H, msg, block_count);
 #else
-        process_block_scalar(H, msg, block_count);
+        process_blocks_scalar(H, msg, block_count);
 #endif
 
 #elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_X86
         // Forced x86: pick the best statically-available ISA level.
 #if defined(__AVX512F__) && defined(__AVX512VL__)
-        process_block_sha512_x86_avx512(H, msg, block_count);
+        process_blocks_sha512_x86_avx512(H, msg, block_count);
 #elif defined(__SSE4_1__)
-        process_block_sha512_x86_sse41(H, msg, block_count);
+        process_blocks_sha512_x86_sse41(H, msg, block_count);
 #else
-        process_block_scalar(H, msg, block_count);
+        process_blocks_scalar(H, msg, block_count);
 #endif
 
 #else // ARM / NONE: no 64-bit hardware path
-        process_block_scalar(H, msg, block_count);
+        process_blocks_scalar(H, msg, block_count);
 #endif
     }
 }

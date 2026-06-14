@@ -36,35 +36,35 @@ inline void sha1_impl::reset()
     bit_count = 0;
 }
 
-inline void sha1_impl::process_block(const void* msg, size_t block_count)
+inline void sha1_impl::process_blocks(const void* msg, size_t block_count)
 {
 #if DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_AUTODETECT_MODE
     using sha1_block_fn_t = void(*)(word_type(&)[state_size], const void*, size_t);
-    static const sha1_block_fn_t process_block_impl = []() -> sha1_block_fn_t {
+    static const sha1_block_fn_t process_blocks_impl = []() -> sha1_block_fn_t {
 #   if DATAFORGE_TARGET_X86 && DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA1
         if (sha1_runtime_has_sha1_accel())
-            return process_block_sha1_x86;
-        return &sha1_impl::process_block_scalar;
+            return process_blocks_sha1_x86;
+        return &sha1_impl::process_blocks_scalar;
 #   elif DATAFORGE_TARGET_ARM && DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA1
         if (sha1_runtime_has_sha1_accel())
-            return &process_block_sha1_arm;
-        return &sha1_impl::process_block_scalar;
+            return &process_blocks_sha1_arm;
+        return &sha1_impl::process_blocks_scalar;
 #   else
-        return &sha1_impl::process_block_scalar;
+        return &sha1_impl::process_blocks_scalar;
 #   endif
     }();
-    process_block_impl(H, msg, block_count);
+    process_blocks_impl(H, msg, block_count);
 #elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_X86
-    process_block_sha1_x86(H, msg, block_count);
+    process_blocks_sha1_x86(H, msg, block_count);
 #elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_ARM
-    process_block_sha1_arm(H, msg, block_count);
+    process_blocks_sha1_arm(H, msg, block_count);
 #else // DATAFORGE_ACCEL_NONE
-    process_block_scalar(H, msg, block_count);
+    process_blocks_scalar(H, msg, block_count);
 #endif
 }
 
 // processes one chunk of 64 bytes 
-void sha1_impl::process_block_scalar(word_type(&state)[state_size], const void* msg, size_t block_count) noexcept
+void sha1_impl::process_blocks_scalar(word_type(&state)[state_size], const void* msg, size_t block_count) noexcept
 {
     word_type Ws[80];
     for (;;) {

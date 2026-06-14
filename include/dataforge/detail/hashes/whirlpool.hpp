@@ -27,7 +27,6 @@ struct whirlpool_impl : digest_base<whirlpool_impl, 64, uint_least64_t, 4>
 
     void reset();
 
-    using digest_base<whirlpool_impl, 64, uint_least64_t, 4>::process_block;
     void process_block(const void* msg);
 
     void store_bit_count(void* dst) const noexcept;

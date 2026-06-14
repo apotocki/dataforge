@@ -88,7 +88,7 @@ inline bool x86_runtime_has_avx512()
 // SHA-NI backend
 // --------------------------------------------------------------------------
 DATAFORGE_SHA_TARGET
-inline void process_block_sha256_x86(uint32_t(&state)[8], const void* msg, size_t block_count)
+inline void process_blocks_sha256_x86(uint32_t(&state)[8], const void* msg, size_t block_count)
 {
     assert(block_count > 0);
 
@@ -249,7 +249,7 @@ DATAFORGE_FORCEINLINE uint32_t avx512_sha256_rotr(uint32_t x, unsigned n)
 }
 
 DATAFORGE_AVX512_TARGET
-inline void process_block_sha256_x86_avx512(uint32_t(&state)[8], const void* msg, size_t block_count)
+inline void process_blocks_sha256_x86_avx512(uint32_t(&state)[8], const void* msg, size_t block_count)
 {
     static const __m128i SHUF_MASK = _mm_set_epi64x(0x0C0D0E0F08090A0BULL, 0x0405060700010203ULL);
 

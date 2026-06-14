@@ -24,7 +24,6 @@ struct streebog_impl : digest_base<streebog_impl, 64>
 
     void reset() noexcept;
 
-    using digest_base<streebog_impl, 64>::process_block;
     void process_block(const void* msg);
     void finalize();
 
