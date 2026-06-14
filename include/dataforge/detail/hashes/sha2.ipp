@@ -189,32 +189,37 @@ void sha2_impl<Type>::process_block_scalar(word_type (&state)[state_size], const
     word_type Ws[sha2_impl::message_schedule_length];
 
     static_assert(sizeof(word_type) * sha2_impl::message_schedule_length >= sha2_impl::block_size);
-    word_type *W = be_to_T<8, 8 * sha2_impl::word_type_byte_count>(Ws, msg, sha2_impl::block_size);
 
-    for (int t = 16; t < sha2_impl::message_schedule_length; ++t)
-        W[t] = sigma(W[t - 2], sha2_impl::s1) + W[t - 7]
-        + sigma(W[t - 15], sha2_impl::s0) + W[t - 16];
+    for (;;) {
+        word_type *W = be_to_T<8, 8 * sha2_impl::word_type_byte_count>(Ws, msg, sha2_impl::block_size);
 
-    word_type Y[8];
-    std::memcpy(Y, state, sizeof(Y));
+        for (int t = 16; t < sha2_impl::message_schedule_length; ++t)
+            W[t] = sigma(W[t - 2], sha2_impl::s1) + W[t - 7]
+            + sigma(W[t - 15], sha2_impl::s0) + W[t - 16];
 
-    for (int t = 0; t < sha2_impl::message_schedule_length; ++t)
-    {
-        word_type T1 = Y[7] + Sigma(Y[4], sha2_impl::S1) + Ch(Y[4], Y[5], Y[6])
-            + sha2_impl::K[t] + W[t];
-        word_type T2 = Sigma(Y[0], sha2_impl::S0) + Maj(Y[0], Y[1], Y[2]);
-        Y[7] = Y[6];
-        Y[6] = Y[5];
-        Y[5] = Y[4];
-        Y[4] = Y[3] + T1;
-        Y[3] = Y[2];
-        Y[2] = Y[1];
-        Y[1] = Y[0];
-        Y[0] = T1 + T2;
+        word_type Y[8];
+        std::memcpy(Y, state, sizeof(Y));
+
+        for (int t = 0; t < sha2_impl::message_schedule_length; ++t)
+        {
+            word_type T1 = Y[7] + Sigma(Y[4], sha2_impl::S1) + Ch(Y[4], Y[5], Y[6])
+                + sha2_impl::K[t] + W[t];
+            word_type T2 = Sigma(Y[0], sha2_impl::S0) + Maj(Y[0], Y[1], Y[2]);
+            Y[7] = Y[6];
+            Y[6] = Y[5];
+            Y[5] = Y[4];
+            Y[4] = Y[3] + T1;
+            Y[3] = Y[2];
+            Y[2] = Y[1];
+            Y[1] = Y[0];
+            Y[0] = T1 + T2;
+        }
+
+        for (int i = 0; i < 8; ++i)
+            state[i] += Y[i];
+        if (--block_count == 0) break;
+        msg = static_cast<const char*>(msg) + sha2_impl::block_size;
     }
-
-    for (int i = 0; i < 8; ++i)
-        state[i] += Y[i];
 }
 
 template<sha2_type Type>

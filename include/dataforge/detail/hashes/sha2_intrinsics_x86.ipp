@@ -249,7 +249,7 @@ DATAFORGE_FORCEINLINE uint32_t avx512_sha256_rotr(uint32_t x, unsigned n)
 }
 
 DATAFORGE_AVX512_TARGET
-inline void process_block_sha256_x86_avx512(uint32_t(&state)[8], const void* msg)
+inline void process_block_sha256_x86_avx512(uint32_t(&state)[8], const void* msg, size_t block_count)
 {
     static const __m128i SHUF_MASK = _mm_set_epi64x(0x0C0D0E0F08090A0BULL, 0x0405060700010203ULL);
 
@@ -258,39 +258,45 @@ inline void process_block_sha256_x86_avx512(uint32_t(&state)[8], const void* msg
 
     // Message schedule, four 32-bit words per vector (16 vectors == 64 words).
     __m128i w[16];
-    w[0] = _mm_shuffle_epi8(_mm_loadu_si128(reinterpret_cast<const __m128i*>(data +  0)), SHUF_MASK);
-    w[1] = _mm_shuffle_epi8(_mm_loadu_si128(reinterpret_cast<const __m128i*>(data + 16)), SHUF_MASK);
-    w[2] = _mm_shuffle_epi8(_mm_loadu_si128(reinterpret_cast<const __m128i*>(data + 32)), SHUF_MASK);
-    w[3] = _mm_shuffle_epi8(_mm_loadu_si128(reinterpret_cast<const __m128i*>(data + 48)), SHUF_MASK);
+    for (;;) {
 
-    for (int k = 4; k < 16; ++k) {
-        const __m128i part = _mm_add_epi32(avx512_sha256_msg1(w[k - 4], w[k - 3]),
-                                           _mm_alignr_epi8(w[k - 1], w[k - 2], 4)); // + {W[t-7..t-4]}
-        w[k] = avx512_sha256_msg2(part, w[k - 1]);
+        w[0] = _mm_shuffle_epi8(_mm_loadu_si128(reinterpret_cast<const __m128i*>(data +  0)), SHUF_MASK);
+        w[1] = _mm_shuffle_epi8(_mm_loadu_si128(reinterpret_cast<const __m128i*>(data + 16)), SHUF_MASK);
+        w[2] = _mm_shuffle_epi8(_mm_loadu_si128(reinterpret_cast<const __m128i*>(data + 32)), SHUF_MASK);
+        w[3] = _mm_shuffle_epi8(_mm_loadu_si128(reinterpret_cast<const __m128i*>(data + 48)), SHUF_MASK);
+
+        for (int k = 4; k < 16; ++k) {
+            const __m128i part = _mm_add_epi32(avx512_sha256_msg1(w[k - 4], w[k - 3]),
+                                               _mm_alignr_epi8(w[k - 1], w[k - 2], 4)); // + {W[t-7..t-4]}
+            w[k] = avx512_sha256_msg2(part, w[k - 1]);
+        }
+
+        // Fold in the round constants once (aligned vector loads) and keep W+K for
+        // the scalar compression loop.
+        alignas(64) uint32_t wk[64];
+        for (int k = 0; k < 16; ++k)
+            _mm_store_si128(reinterpret_cast<__m128i*>(wk + 4 * k),
+                            _mm_add_epi32(w[k], _mm_load_si128(Kvec + k)));
+
+        uint32_t a = state[0], b = state[1], c = state[2], d = state[3];
+        uint32_t e = state[4], f = state[5], g = state[6], h = state[7];
+
+        for (int t = 0; t < 64; ++t) {
+            const uint32_t S1 = avx512_sha256_rotr(e, 6) ^ avx512_sha256_rotr(e, 11) ^ avx512_sha256_rotr(e, 25);
+            const uint32_t ch = (e & f) ^ (~e & g);
+            const uint32_t T1 = h + S1 + ch + wk[t];
+            const uint32_t S0 = avx512_sha256_rotr(a, 2) ^ avx512_sha256_rotr(a, 13) ^ avx512_sha256_rotr(a, 22);
+            const uint32_t maj = (a & b) ^ (a & c) ^ (b & c);
+            const uint32_t T2 = S0 + maj;
+            h = g; g = f; f = e; e = d + T1; d = c; c = b; b = a; a = T1 + T2;
+        }
+
+        state[0] += a; state[1] += b; state[2] += c; state[3] += d;
+        state[4] += e; state[5] += f; state[6] += g; state[7] += h;
+
+        if (--block_count == 0) break;
+        data += 64;
     }
-
-    // Fold in the round constants once (aligned vector loads) and keep W+K for
-    // the scalar compression loop.
-    alignas(64) uint32_t wk[64];
-    for (int k = 0; k < 16; ++k)
-        _mm_store_si128(reinterpret_cast<__m128i*>(wk + 4 * k),
-                        _mm_add_epi32(w[k], _mm_load_si128(Kvec + k)));
-
-    uint32_t a = state[0], b = state[1], c = state[2], d = state[3];
-    uint32_t e = state[4], f = state[5], g = state[6], h = state[7];
-
-    for (int t = 0; t < 64; ++t) {
-        const uint32_t S1 = avx512_sha256_rotr(e, 6) ^ avx512_sha256_rotr(e, 11) ^ avx512_sha256_rotr(e, 25);
-        const uint32_t ch = (e & f) ^ (~e & g);
-        const uint32_t T1 = h + S1 + ch + wk[t];
-        const uint32_t S0 = avx512_sha256_rotr(a, 2) ^ avx512_sha256_rotr(a, 13) ^ avx512_sha256_rotr(a, 22);
-        const uint32_t maj = (a & b) ^ (a & c) ^ (b & c);
-        const uint32_t T2 = S0 + maj;
-        h = g; g = f; f = e; e = d + T1; d = c; c = b; b = a; a = T1 + T2;
-    }
-
-    state[0] += a; state[1] += b; state[2] += c; state[3] += d;
-    state[4] += e; state[5] += f; state[6] += g; state[7] += h;
 }
 
 #if defined(_MSC_VER)
