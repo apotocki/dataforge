@@ -66,6 +66,12 @@
 #define DATAFORGE_ACCEL_IMPL DATAFORGE_ACCEL_NONE
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+#   define DATAFORGE_FORCEINLINE    inline __attribute__((always_inline))
+#else
+#   define DATAFORGE_FORCEINLINE    __forceinline
+#endif
+
 #if DATAFORGE_TARGET_X86 == 1
 // Per-function ISA selection. On GCC/Clang each accelerated routine carries its
 // own target attribute, so the file compiles even when the global -m flags do
@@ -77,11 +83,9 @@
 #   define DATAFORGE_SHA_TARGET     __attribute__((target("sha,sse4.1")))
 #   define DATAFORGE_AVX512_TARGET  __attribute__((target("avx512f,avx512vl,sse4.1")))
 #   define DATAFORGE_SSE41_TARGET   __attribute__((target("sse4.1")))
-#   define DATAFORGE_FORCEINLINE    inline __attribute__((always_inline))
 #else
 #   define DATAFORGE_SHA_TARGET
 #   define DATAFORGE_AVX512_TARGET
 #   define DATAFORGE_SSE41_TARGET
-#   define DATAFORGE_FORCEINLINE    __forceinline
 #endif
 #endif
