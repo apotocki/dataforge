@@ -63,6 +63,9 @@ inline void process_block_sha1_arm(uint_least32_t(&state)[5], const void* msg, s
     uint32x4_t abcd = vld1q_u32(&state[0]);   /* {A,B,C,D} */
     uint32_t   e_scalar = state[4];
 
+    uint32x4_t tmp;
+    uint32_t   e0, e1;
+
     for (;;) {
         const uint32x4_t abcd_save = abcd;
         const uint32_t   e_save    = e_scalar;
@@ -86,9 +89,6 @@ inline void process_block_sha1_arm(uint_least32_t(&state)[5], const void* msg, s
         const uint32x4_t K1 = vdupq_n_u32(0x6ed9eba1u); /* rounds 20-39 */
         const uint32x4_t K2 = vdupq_n_u32(0x8f1bbcdcu); /* rounds 40-59 */
         const uint32x4_t K3 = vdupq_n_u32(0xca62c1d6u); /* rounds 60-79 */
-
-        uint32x4_t tmp;
-        uint32_t   e0, e1;
 
         /* Rounds 0-3: Ch, no schedule yet */
         tmp  = vaddq_u32(msg0, K0);
