@@ -191,11 +191,20 @@ Configuration is controlled by these macros:
   virtually all x86-64 hardware since ~2008.
 - **ARM SHA2** — AArch64 crypto extensions (`vsha256hq` / `vsha256su*`), for
   SHA-224/SHA-256. Requires an AArch64 target.
+- **ARM SHA-512** — ARMv8.2-A SHA-512 extension (`vsha512hq` / `vsha512h2q` /
+  `vsha512su0q` / `vsha512su1q`), for SHA-384 / SHA-512 / SHA-512-224 / SHA-512-256.
+  Requires an AArch64 target with the SHA-512 feature (ARMv8.2-A+sha3).
+  Runtime detection via `HWCAP2_SHA512` bit from `getauxval(AT_HWCAP2)` on Linux.
+- **ARM NEON SHA-512** — vectorized message schedule using baseline NEON 64-bit
+  lane operations (shift-or pairs for 64-bit rotation), with 8-way unrolled scalar
+  compression rounds. Available on **all AArch64 CPUs** (Cortex-A53 and up, including
+  Rock64/RK3328). Selected automatically when the SHA-512 extension is absent.
 
 On GCC/Clang the intrinsics for each backend are enabled per-function via
 `__attribute__((target(...)))`, so no global `-msha` / `-mavx512*` /
-`-march=armv8-a+sha2` flags are needed to *build* them; on MSVC they are always
-available. The architecture (x86 vs ARM) is the only compile-time requirement.
+`-march=armv8-a+sha2` / `-march=armv8.2-a+sha3` flags are needed to *build* them;
+on MSVC they are always available. The architecture (x86 vs ARM) is the only
+compile-time requirement.
 AVX-512 selection also verifies, at run time, that the OS has enabled the AVX-512
 register state (via `XCR0`), not just that the CPUID feature bits are present.
 
@@ -208,7 +217,8 @@ register state (via `XCR0`), not just that the CPUID feature bits are present.
     `DATAFORGE_ACCEL_X86_SHA256_USE_AVX512=1`: **AVX-512** if present, then SHA-NI,
     then scalar).
   - SHA-512 family on x86: **AVX-512** if present, else **SSE4.1** if present, else **scalar**.
-  - SHA-224/SHA-256 on ARM: **SHA2** if present, else scalar.
+  - SHA-224/SHA-256 on ARM: **SHA2** crypto extension if present, else **scalar**.
+  - SHA-512 family on ARM: **SHA-512** extension if present (via `HWCAP2_SHA512`), else **NEON** (all AArch64), else **scalar**.
 - **Forced x86 (`FORCE=1`)** — the intrinsic code is emitted **directly** with no
   run-time CPU probing; the caller guarantees the CPU supports it. SHA-1 and
   SHA-224/SHA-256 emit SHA-NI (or AVX-512 for SHA-256 if
@@ -217,9 +227,10 @@ register state (via `XCR0`), not just that the CPUID feature bits are present.
   or `/arch:AVX512`, i.e. `__AVX512F__ && __AVX512VL__`), otherwise **SSE4.1** if
   the build defines `__SSE4_1__` (e.g. `-msse4.1`), else scalar.
   A forced-x86 build on a non-x86 target safely degrades to scalar.
-- **Forced ARM (`FORCE=2`)** — SHA-1 and SHA-224/SHA-256 use the AArch64 crypto
-  extension intrinsics directly with no runtime probing. A forced-ARM build on a
-  non-ARM target safely degrades to scalar.
+- **Forced ARM (`FORCE=2`)** — SHA-1 and SHA-224/SHA-256 use AArch64 crypto
+  extension intrinsics directly with no runtime probing. The SHA-512 family uses
+  the SHA-512 extension if the build target supports it, otherwise NEON, otherwise
+  scalar. A forced-ARM build on a non-ARM target safely degrades to scalar.
 - **Forced scalar / acceleration disabled** — the portable scalar implementation
   is always used.
 

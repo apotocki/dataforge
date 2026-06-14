@@ -635,6 +635,9 @@
     <ClInclude Include="..\include\dataforge\detail\hashes\sha512_intrinsics_x86.ipp">
       <Filter>dataforge\detail\hashes\sha2</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha512_intrinsics_arm.ipp">
+      <Filter>dataforge\detail\hashes\sha2</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />

@@ -16,12 +16,23 @@
 #   include "sha2_intrinsics_arm.ipp"
 #endif
 
+#if DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA512
+#   include "sha512_intrinsics_arm.ipp"
+#endif
+
+#if DATAFORGE_ACCEL_CAN_COMPILE_ARM_NEON_SHA512
+#   include "sha512_neon_arm.ipp"
+#endif
+
 #if DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_AUTODETECT_MODE
 namespace dataforge::sha2_detail {
     inline bool sha256_runtime_has_sha256_accel();
 #if DATAFORGE_TARGET_X86 && DATAFORGE_ACCEL_CAN_COMPILE_X86_AVX512
     inline bool x86_runtime_has_sse41();
     inline bool x86_runtime_has_avx512();
+#endif
+#if DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA512
+    inline bool sha512_runtime_has_sha512_accel();
 #endif
 }
 #endif
@@ -295,6 +306,20 @@ inline void sha2_impl<Type>::process_blocks(const void* msg, size_t block_count)
             return &sha2_impl<Type>::process_blocks_scalar;
         }();
         process_blocks_impl(H, msg, block_count);
+#elif DATAFORGE_TARGET_ARM && (DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA512 || DATAFORGE_ACCEL_CAN_COMPILE_ARM_NEON_SHA512)
+        using sha512_block_fn_t = void(*)(uint64_t(&)[8], const void*, size_t);
+        static const sha512_block_fn_t process_blocks_impl = []() -> sha512_block_fn_t {
+#   if DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA512
+            if (sha512_runtime_has_sha512_accel())
+                return &process_blocks_sha512_arm;
+#   endif
+#   if DATAFORGE_ACCEL_CAN_COMPILE_ARM_NEON_SHA512
+            return &process_blocks_sha512_arm_neon;
+#   else
+            return &sha2_impl<Type>::process_blocks_scalar;
+#   endif
+        }();
+        process_blocks_impl(H, msg, block_count);
 #else
         process_blocks_scalar(H, msg, block_count);
 #endif
@@ -309,7 +334,16 @@ inline void sha2_impl<Type>::process_blocks(const void* msg, size_t block_count)
         process_blocks_scalar(H, msg, block_count);
 #endif
 
-#else // ARM / NONE: no 64-bit hardware path
+#elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_ARM
+#   if DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA512
+        process_blocks_sha512_arm(H, msg, block_count);
+#   elif DATAFORGE_ACCEL_CAN_COMPILE_ARM_NEON_SHA512
+        process_blocks_sha512_arm_neon(H, msg, block_count);
+#   else
+        process_blocks_scalar(H, msg, block_count);
+#   endif
+
+#else // NONE
         process_blocks_scalar(H, msg, block_count);
 #endif
     }

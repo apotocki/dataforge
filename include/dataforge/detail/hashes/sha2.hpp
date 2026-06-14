@@ -35,6 +35,22 @@
 #define DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA2 0
 #endif
 
+// ARM SHA-512: ARMv8.2-A SHA-512 extension; GCC/Clang require
+// #pragma GCC target("+sha3") (sha3 feature includes sha512 intrinsics).
+#if DATAFORGE_TARGET_ARM64
+#define DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA512 1
+#else
+#define DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA512 0
+#endif
+
+// ARM NEON SHA-512: vectorized message schedule using baseline NEON 64-bit
+// lane ops (shift-or pairs for rotation). Available on all AArch64 targets.
+#if DATAFORGE_TARGET_ARM64
+#define DATAFORGE_ACCEL_CAN_COMPILE_ARM_NEON_SHA512 1
+#else
+#define DATAFORGE_ACCEL_CAN_COMPILE_ARM_NEON_SHA512 0
+#endif
+
 #if DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_X86
 #if !DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA
 #undef DATAFORGE_ACCEL_IMPL
