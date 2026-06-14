@@ -29,6 +29,7 @@ struct md4_impl : digest_base<md4_impl, 64>
 
     void reset();
 
+    using digest_base<md4_impl, 64>::process_block;
     void process_block(const void* msg);
 
     static constexpr size_t state_size = 4;

@@ -28,6 +28,7 @@ struct md2_impl : digest_base<md2_impl, 16>
 
     void reset();
 
+    using digest_base<md2_impl, 16>::process_block;
     void process_block(const void* msg);
     void finalize();
 

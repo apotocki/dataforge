@@ -116,7 +116,7 @@ do {                                                                       \
 #endif
 
 DATAFORGE_AVX512_TARGET
-inline void process_block_sha512_x86_avx512(uint64_t(&state)[8], const void* msg)
+inline void process_block_sha512_x86_avx512(uint64_t(&state)[8], const void* msg, size_t block_count)
 {
     static const __m128i SHUF_MASK = _mm_set_epi64x(0x08090A0B0C0D0E0FULL, 0x0001020304050607ULL);
 
@@ -178,7 +178,7 @@ inline void process_block_sha512_x86_avx512(uint64_t(&state)[8], const void* msg
 // Alder Lake, Skylake, etc.) without requiring AVX-512.
 // ---------------------------------------------------------------------------
 DATAFORGE_SSE41_TARGET
-inline void process_block_sha512_x86_sse41(uint64_t(&state)[8], const void* msg)
+inline void process_block_sha512_x86_sse41(uint64_t(&state)[8], const void* msg, size_t block_count)
 {
     static const __m128i SHUF_MASK = _mm_set_epi64x(0x08090A0B0C0D0E0FULL, 0x0001020304050607ULL);
 

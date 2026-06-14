@@ -152,6 +152,43 @@ void blake_impl<blake_type, Type>::store_bit_count(void*)
     }
 }
 
+template <blake_type Type>
+void blake_impl<blake_type, Type>::input(const void* vdata, size_t len)
+{
+    if (!len) return;
+
+    const std::byte* data = static_cast<const std::byte*>(vdata);
+
+    size_t index = 0; // index into data array
+    size_t bytes_in_buf = blake_impl::bytes_in_buf();
+
+    if (bytes_in_buf) {
+        const size_t bytes_to_copy =
+            len > blake_impl::block_size - bytes_in_buf ? blake_impl::block_size - bytes_in_buf : len;
+        std::memcpy(this->buffer_ + bytes_in_buf, data, bytes_to_copy);
+        assert(bytes_to_copy + bytes_in_buf <= blake_impl::block_size);
+        blake_impl::count_bytes(bytes_to_copy);
+        if (bytes_to_copy + bytes_in_buf == blake_impl::block_size && (!blake_impl::allow_full_buffer || bytes_to_copy < len)) {
+            process_block(this->buffer_);
+            index = bytes_to_copy;
+        }
+        else {
+            return;
+        }
+    }
+
+    // now process the data in blocks
+    for (; len - index >= blake_impl::block_size + (blake_impl::allow_full_buffer ? 1 : 0); index += blake_impl::block_size) {
+        blake_impl::count_bytes(blake_impl::block_size);
+        process_block(data + index);
+    }
+
+    // copy remaining bytes into buffer
+    const size_t remaining_bytes = len - index;
+    std::memcpy(this->buffer_, data + index, remaining_bytes);
+    blake_impl::count_bytes(remaining_bytes);
+}
+
 template <blake2_type Type>
 blake_impl<blake2_type, Type>::blake_impl()
 {
@@ -242,6 +279,46 @@ void blake_impl<blake2_type, Type>::finalize()
     const unsigned int bytes_in_buf = blake_impl::bytes_in_buf();
     std::memset(blake_impl::buffer_ + bytes_in_buf, 0, blake_impl::block_size - bytes_in_buf);
     this->process_block(blake_impl::buffer_);
+}
+
+template <blake2_type Type>
+void blake_impl<blake2_type, Type>::input(const void* vdata, size_t len)
+{
+    if (!len) return;
+
+    const std::byte* data = static_cast<const std::byte*>(vdata);
+
+    size_t index = 0; // index into data array
+    size_t bytes_in_buf = blake_impl::bytes_in_buf();
+
+    if (bytes_in_buf) {
+        const size_t bytes_to_copy =
+            len > blake_impl::block_size - bytes_in_buf ? blake_impl::block_size - bytes_in_buf : len;
+        std::memcpy(this->buffer_ + bytes_in_buf, data, bytes_to_copy);
+        assert(bytes_to_copy + bytes_in_buf <= blake_impl::block_size);
+        blake_impl::count_bytes(bytes_to_copy);
+        if (bytes_to_copy + bytes_in_buf == blake_impl::block_size && (!blake_impl::allow_full_buffer || bytes_to_copy < len)) {
+            process_block(this->buffer_);
+            index = bytes_to_copy;
+        }
+        else {
+            full_buff = !(blake_impl::bit_count[0] % blake_impl::block_size);
+            return;
+        }
+    }
+
+    // now process the data in blocks
+    for (; len - index >= blake_impl::block_size + (blake_impl::allow_full_buffer ? 1 : 0); index += blake_impl::block_size) {
+        blake_impl::count_bytes(blake_impl::block_size);
+        process_block(data + index);
+    }
+
+    // copy remaining bytes into buffer
+    const size_t remaining_bytes = len - index;
+    std::memcpy(this->buffer_, data + index, remaining_bytes);
+    blake_impl::count_bytes(remaining_bytes);
+
+    full_buff = !(blake_impl::bit_count[0] % blake_impl::block_size);
 }
 
 }

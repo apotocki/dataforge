@@ -1,5 +1,5 @@
 /*=============================================================================
-    Copyright (c) 2022 Alexander Pototskiy
+    Copyright (c) 2026 Alexander Pototskiy
 
     Use, modification and distribution is subject to the Boost Software
     License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
@@ -68,6 +68,16 @@ struct digest_base
 
     void input(const void* vdata, size_t len);
 
+    inline void process_block(const void* msg, size_t block_count) noexcept
+    {
+        const auto* data = reinterpret_cast<const uint8_t*>(msg);
+        for (;;) {
+            static_cast<DerivedT&>(*this).process_block(data);
+            if (--block_count == 0) break;
+            data += block_size;
+        }
+    }
+
     counter<size_type, BCV> bit_count;
 
     element_type buffer_[block_size];
@@ -80,7 +90,6 @@ void digest_base<DerivedT, BlockSizeV, SizeT, BCV>::input(const void* vdata, siz
 
     const std::byte* data = static_cast<const std::byte*>(vdata);
 
-    size_t index = 0; // index into data array
     size_t bytes_in_buf = static_cast<DerivedT&>(*this).bytes_in_buf();
 
     if (bytes_in_buf) {
@@ -88,25 +97,37 @@ void digest_base<DerivedT, BlockSizeV, SizeT, BCV>::input(const void* vdata, siz
             len > block_size - bytes_in_buf ? block_size - bytes_in_buf : len;
         std::memcpy(buffer_ + bytes_in_buf, data, bytes_to_copy);
         assert (bytes_to_copy + bytes_in_buf <= block_size);
-        static_cast<DerivedT&>(*this).count_bytes(bytes_to_copy);
         if (bytes_to_copy + bytes_in_buf == block_size && (!DerivedT::allow_full_buffer || bytes_to_copy < len)) {
-            static_cast<DerivedT&>(*this).process_block(buffer_);
-            index = bytes_to_copy;
+            static_cast<DerivedT&>(*this).process_block(buffer_, 1);
+            len-= bytes_to_copy;
+            data += bytes_to_copy;
         } else {
+            static_cast<DerivedT&>(*this).count_bytes(bytes_to_copy);
             return;
         }
     }
     
     // now process the data in blocks
-    for (; len - index >= block_size + (DerivedT::allow_full_buffer?1:0); index += block_size) {
-        static_cast<DerivedT&>(*this).count_bytes(block_size);
-        static_cast<DerivedT&>(*this).process_block(data + index);
+    //  is the number of whole blocks in the remaining data, but if allow_full_buffer is true, we can process one more block if it fits in the buffer, so we need to check for that as well
+    size_t block_count = len / block_size;
+    size_t bytes_to_process = block_count * block_size;
+    if constexpr (DerivedT::allow_full_buffer) {
+        if (block_count && (len - bytes_to_process == 0)) {
+            --block_count;
+            bytes_to_process -= block_size;
+        }
+    }
+
+    if (block_count) {
+        //static_cast<DerivedT&>(*this).count_bytes(bytes_to_process);
+        static_cast<DerivedT&>(*this).process_block(data, block_count);
+        data += bytes_to_process;
+        len -= bytes_to_process;
     }
 
     // copy remaining bytes into buffer
-    const size_t remaining_bytes = len - index;
-    std::memcpy(buffer_, data + index, remaining_bytes);
-    static_cast<DerivedT&>(*this).count_bytes(remaining_bytes);
+    std::memcpy(buffer_, data, len);
+    static_cast<DerivedT&>(*this).count_bytes(data + len - static_cast<const std::byte*>(vdata));
 }
 
 template <typename DerivedT, size_t BlockSizeV, typename SizeT, size_t BCV>
@@ -118,13 +139,13 @@ void digest_base<DerivedT, BlockSizeV, SizeT, BCV>::finalize()
     std::memset(buffer_ + bytes_in_buf + 1, 0, DerivedT::block_size - bytes_in_buf - 1);
     if (bytes_in_buf >= pad_end)
     {
-        static_cast<DerivedT&>(*this).process_block(buffer_);
+        static_cast<DerivedT&>(*this).process_block(buffer_, 1);
         std::memset(buffer_, 0, DerivedT::block_size);
     }
 
     static_cast<DerivedT&>(*this).store_bit_count(buffer_ + pad_end);
 
-    static_cast<DerivedT&>(*this).process_block(buffer_);
+    static_cast<DerivedT&>(*this).process_block(buffer_, 1);
 }
 
 }

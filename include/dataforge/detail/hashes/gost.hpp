@@ -24,6 +24,7 @@ struct gost_impl : digest_base<gost_impl, 32, uint_least32_t, 8>
 
     void reset() noexcept;
 
+    using digest_base<gost_impl, 32, uint_least32_t, 8>::process_block;
     void process_block(const void* msg);
     void finalize();
 

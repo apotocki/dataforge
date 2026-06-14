@@ -27,6 +27,7 @@ struct ripemd_impl_base<ripemd_type::ripemd128> : digest_base<ripemd_impl<ripemd
 
     static const word_type init_values[4];
 
+    using digest_base<ripemd_impl<ripemd_type::ripemd128>, 64>::process_block;
     void process_block(const void* msg);
 
     word_type h[4];
@@ -39,6 +40,7 @@ struct ripemd_impl_base<ripemd_type::ripemd160> : digest_base<ripemd_impl<ripemd
 
     static const word_type init_values[5];
 
+    using digest_base<ripemd_impl<ripemd_type::ripemd160>, 64>::process_block;
     void process_block(const void* msg);
 
     word_type h[5];
@@ -51,6 +53,7 @@ struct ripemd_impl_base<ripemd_type::ripemd256> : digest_base<ripemd_impl<ripemd
 
     static const word_type init_values[8];
 
+    using digest_base<ripemd_impl<ripemd_type::ripemd256>, 64>::process_block;
     void process_block(const void* msg);
 
     word_type h[8];
@@ -63,6 +66,7 @@ struct ripemd_impl_base<ripemd_type::ripemd320> : digest_base<ripemd_impl<ripemd
 
     static const word_type init_values[10];
 
+    using digest_base<ripemd_impl<ripemd_type::ripemd320>, 64>::process_block;
     void process_block(const void* msg);
 
     word_type h[10];

@@ -95,8 +95,20 @@ struct blake_impl<blake_type, Type> : blake_impl_base<Type, (int)Type < 384 ? 32
 
     void reset();
 
+    void input(const void* vdata, size_t len);
+    //using blake_impl_base<Type, (int)Type < 384 ? 32 : 64>::process_block;
     void process_block(const void* msg);
-    
+    void process_block(const void* msg, size_t block_count)
+    {
+        const auto* data = reinterpret_cast<const uint8_t*>(msg);
+        for (;;) {
+            //blake_impl::count_bytes(blake_impl::block_size);
+            process_block(data);
+            if (--block_count == 0) break;
+            data += blake_impl::block_size;
+        }
+    }
+
     void store_bit_count(void* dst);
 
     static constexpr size_t state_size = 8;
@@ -147,15 +159,20 @@ struct blake_impl<blake2_type, Type> : blake2_impl_base<Type, (int)Type < 384 ? 
         f[0] = (std::numeric_limits<word_type>::max)();
     }
 
+    
     void process_block(const void* msg);
-
-    void input(const void* vdata, size_t len)
+    void process_block(const void* msg, size_t block_count)
     {
-        if (len) {
-            blake_impl::base_t::input(vdata, len);
-            full_buff = !(blake_impl::bit_count[0] % blake_impl::block_size);
+        const auto* data = reinterpret_cast<const uint8_t*>(msg);
+        for (;;) {
+            //blake_impl::count_bytes(blake_impl::block_size);
+            process_block(data);
+            if (--block_count == 0) break;
+            data += blake_impl::block_size;
         }
     }
+
+    void input(const void* vdata, size_t len);
 
     static constexpr size_t state_size = 8;
     inline std::span<digest_word_type, state_size> digest_span() { return h; }

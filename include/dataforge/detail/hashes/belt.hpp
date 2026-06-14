@@ -25,6 +25,7 @@ struct belt_hash_impl : digest_base<belt_hash_impl, 32, uint_least64_t, 2>
 
     void reset() noexcept;
 
+    using digest_base<belt_hash_impl, 32, uint_least64_t, 2>::process_block;
     void process_block(const void* msg);
     void finalize();
 
