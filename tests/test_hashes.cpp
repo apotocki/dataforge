@@ -260,6 +260,10 @@ void whirlpool_test()
 
 void blake_test()
 {
+#if 0
+    std::vector<char> x64(64, 'x');
+    DATAFORGE_TEST(int8 | blake224 | base16u, x64, "A745F448C389B1E969A3421A6ADF6403EFBA198DC9F104E9EB1C98FD"sv);
+#else
     DATAFORGE_TEST(int8 | blake224 | base16l, ""sv, "7dc5313b1c04512a174bd6503b89607aecbee0903d40a8a569c94eed"sv);
     DATAFORGE_TEST(int8 | blake256 | base16l, ""sv, "716f6e863f744b9ac22c97ec7b76ea5f5908bc5b2f67c61510bfc4751384ea7a"sv);
     DATAFORGE_TEST(int8 | blake384 | base16l, ""sv, "c6cbd89c926ab525c242e6621f2f5fa73aa4afe3d9e24aed727faaadd6af38b620bdb623dd2b4788b1c8086984af8706"sv);
@@ -327,6 +331,7 @@ void blake_test()
     DATAFORGE_TEST(int8 | blake2s224 | base16l, (std::vector{ x63, x65 }), "51e00eff110c3531414e54cd204aa63af7bad3509b41401242d4d02a"sv);
 
     DATAFORGE_TEST(int8 | blake2s224_t("1"_bs, nullptr) | base16l, x64, "bbd56c7c818bd42519f86a09de65f82435bba62c7afeb83c48d48cb4"sv);
+#endif
 }
 
 }

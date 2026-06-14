@@ -45,6 +45,7 @@ struct sha1_impl : digest_base<sha1_impl, 64>
 
     void reset();
 
+    using digest_base<sha1_impl, 64>::process_block;
     void process_block(const void* msg);
     void store_bit_count(void* dst) const;
     

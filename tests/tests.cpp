@@ -56,6 +56,7 @@ TEST(DataforgeTest, bzip2) { bzip2_test(); }
 TEST(DataforgeTest, lzma) { lzma_test(); }
 TEST(DataforgeTest, lz4) { lz4_test(); }
 
+// command line: --gtest_filter=DataforgeTest.blake 
 int main(int argc, char** argv)
 {
     // the path to e.g. icudt72l.dat
