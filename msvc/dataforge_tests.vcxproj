@@ -381,6 +381,7 @@
     <ClInclude Include="..\include\dataforge\detail\hashes\sha2_intrinsics_x86.ipp" />
     <ClInclude Include="..\include\dataforge\detail\hashes\sha3.hpp" />
     <ClInclude Include="..\include\dataforge\detail\hashes\sha3.ipp" />
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha512_intrinsics_arm.ipp" />
     <ClInclude Include="..\include\dataforge\detail\hashes\sha512_intrinsics_x86.ipp" />
     <ClInclude Include="..\include\dataforge\detail\hashes\sha_qrk.hpp" />
     <ClInclude Include="..\include\dataforge\detail\hashes\streebog.hpp" />
