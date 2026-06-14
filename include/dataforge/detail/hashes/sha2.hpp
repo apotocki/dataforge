@@ -154,7 +154,6 @@ struct sha2_impl : sha2_impl_base<Type>
 
     void reset();
 
-    using sha2_impl_base<Type>::process_block;
     void process_block(const void* msg, size_t block_count);
     void store_bit_count(void* dst) const;
 

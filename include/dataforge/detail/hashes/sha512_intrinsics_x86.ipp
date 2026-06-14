@@ -129,43 +129,48 @@ inline void process_block_sha512_x86_avx512(uint64_t(&state)[8], const void* msg
     // The sigma1 look-back is exactly the previous vector, so there is no
     // intra-vector dependency to break up.
     __m128i w[40];
-    for (int i = 0; i < 8; ++i)
-        w[i] = _mm_shuffle_epi8(_mm_loadu_si128(reinterpret_cast<const __m128i*>(data + 16 * i)), SHUF_MASK);
+    for (;;) {
+        for (int i = 0; i < 8; ++i)
+            w[i] = _mm_shuffle_epi8(_mm_loadu_si128(reinterpret_cast<const __m128i*>(data + 16 * i)), SHUF_MASK);
 
-    for (int j = 8; j < 40; ++j) {
-        const __m128i s0in = _mm_alignr_epi8(w[j - 7], w[j - 8], 8); // {W[t-15], W[t-14]}
-        const __m128i wm7  = _mm_alignr_epi8(w[j - 3], w[j - 4], 8); // {W[t-7],  W[t-6]}
-        __m128i v = _mm_add_epi64(w[j - 8], avx512_sha512_sigma0(s0in));
-        v = _mm_add_epi64(v, wm7);
-        v = _mm_add_epi64(v, avx512_sha512_sigma1(w[j - 1]));
-        w[j] = v;
+        for (int j = 8; j < 40; ++j) {
+            const __m128i s0in = _mm_alignr_epi8(w[j - 7], w[j - 8], 8); // {W[t-15], W[t-14]}
+            const __m128i wm7  = _mm_alignr_epi8(w[j - 3], w[j - 4], 8); // {W[t-7],  W[t-6]}
+            __m128i v = _mm_add_epi64(w[j - 8], avx512_sha512_sigma0(s0in));
+            v = _mm_add_epi64(v, wm7);
+            v = _mm_add_epi64(v, avx512_sha512_sigma1(w[j - 1]));
+            w[j] = v;
+        }
+
+        // Fold round constants in one pass (aligned loads from the 64-byte-aligned K
+        // table) so the compression loop only needs a single load per round.
+        alignas(64) uint64_t wk[80];
+        for (int j = 0; j < 40; ++j)
+            _mm_store_si128(reinterpret_cast<__m128i*>(wk + 2 * j),
+                            _mm_add_epi64(w[j], _mm_load_si128(Kvec + j)));
+
+        uint64_t a = state[0], b = state[1], c = state[2], d = state[3];
+        uint64_t e = state[4], f = state[5], g = state[6], h = state[7];
+
+        // 8-way unroll: argument permutation rotates the logical state vector,
+        // eliminating all inter-round register moves.
+        for (int t = 0; t < 80; t += 8) {
+            DATAFORGE_SHA512_ROUND(a,b,c,d,e,f,g,h, wk, t+0);
+            DATAFORGE_SHA512_ROUND(h,a,b,c,d,e,f,g, wk, t+1);
+            DATAFORGE_SHA512_ROUND(g,h,a,b,c,d,e,f, wk, t+2);
+            DATAFORGE_SHA512_ROUND(f,g,h,a,b,c,d,e, wk, t+3);
+            DATAFORGE_SHA512_ROUND(e,f,g,h,a,b,c,d, wk, t+4);
+            DATAFORGE_SHA512_ROUND(d,e,f,g,h,a,b,c, wk, t+5);
+            DATAFORGE_SHA512_ROUND(c,d,e,f,g,h,a,b, wk, t+6);
+            DATAFORGE_SHA512_ROUND(b,c,d,e,f,g,h,a, wk, t+7);
+        }
+
+        state[0] += a; state[1] += b; state[2] += c; state[3] += d;
+        state[4] += e; state[5] += f; state[6] += g; state[7] += h;
+
+        if (--block_count == 0) break;
+        data += 128;
     }
-
-    // Fold round constants in one pass (aligned loads from the 64-byte-aligned K
-    // table) so the compression loop only needs a single load per round.
-    alignas(64) uint64_t wk[80];
-    for (int j = 0; j < 40; ++j)
-        _mm_store_si128(reinterpret_cast<__m128i*>(wk + 2 * j),
-                        _mm_add_epi64(w[j], _mm_load_si128(Kvec + j)));
-
-    uint64_t a = state[0], b = state[1], c = state[2], d = state[3];
-    uint64_t e = state[4], f = state[5], g = state[6], h = state[7];
-
-    // 8-way unroll: argument permutation rotates the logical state vector,
-    // eliminating all inter-round register moves.
-    for (int t = 0; t < 80; t += 8) {
-        DATAFORGE_SHA512_ROUND(a,b,c,d,e,f,g,h, wk, t+0);
-        DATAFORGE_SHA512_ROUND(h,a,b,c,d,e,f,g, wk, t+1);
-        DATAFORGE_SHA512_ROUND(g,h,a,b,c,d,e,f, wk, t+2);
-        DATAFORGE_SHA512_ROUND(f,g,h,a,b,c,d,e, wk, t+3);
-        DATAFORGE_SHA512_ROUND(e,f,g,h,a,b,c,d, wk, t+4);
-        DATAFORGE_SHA512_ROUND(d,e,f,g,h,a,b,c, wk, t+5);
-        DATAFORGE_SHA512_ROUND(c,d,e,f,g,h,a,b, wk, t+6);
-        DATAFORGE_SHA512_ROUND(b,c,d,e,f,g,h,a, wk, t+7);
-    }
-
-    state[0] += a; state[1] += b; state[2] += c; state[3] += d;
-    state[4] += e; state[5] += f; state[6] += g; state[7] += h;
 }
 
 #if defined(_MSC_VER)
@@ -186,39 +191,44 @@ inline void process_block_sha512_x86_sse41(uint64_t(&state)[8], const void* msg,
     const auto* Kvec = reinterpret_cast<const __m128i*>(sha2_def_base<512>::K);
 
     __m128i w[40];
-    for (int i = 0; i < 8; ++i)
-        w[i] = _mm_shuffle_epi8(_mm_loadu_si128(reinterpret_cast<const __m128i*>(data + 16 * i)), SHUF_MASK);
+    for (;;) {
+        for (int i = 0; i < 8; ++i)
+            w[i] = _mm_shuffle_epi8(_mm_loadu_si128(reinterpret_cast<const __m128i*>(data + 16 * i)), SHUF_MASK);
 
-    for (int j = 8; j < 40; ++j) {
-        const __m128i s0in = _mm_alignr_epi8(w[j - 7], w[j - 8], 8);
-        const __m128i wm7  = _mm_alignr_epi8(w[j - 3], w[j - 4], 8);
-        __m128i v = _mm_add_epi64(w[j - 8], sse41_sha512_sigma0(s0in));
-        v = _mm_add_epi64(v, wm7);
-        v = _mm_add_epi64(v, sse41_sha512_sigma1(w[j - 1]));
-        w[j] = v;
+        for (int j = 8; j < 40; ++j) {
+            const __m128i s0in = _mm_alignr_epi8(w[j - 7], w[j - 8], 8);
+            const __m128i wm7  = _mm_alignr_epi8(w[j - 3], w[j - 4], 8);
+            __m128i v = _mm_add_epi64(w[j - 8], sse41_sha512_sigma0(s0in));
+            v = _mm_add_epi64(v, wm7);
+            v = _mm_add_epi64(v, sse41_sha512_sigma1(w[j - 1]));
+            w[j] = v;
+        }
+
+        alignas(64) uint64_t wk[80];
+        for (int j = 0; j < 40; ++j)
+            _mm_store_si128(reinterpret_cast<__m128i*>(wk + 2 * j),
+                            _mm_add_epi64(w[j], _mm_load_si128(Kvec + j)));
+
+        uint64_t a = state[0], b = state[1], c = state[2], d = state[3];
+        uint64_t e = state[4], f = state[5], g = state[6], h = state[7];
+
+        for (int t = 0; t < 80; t += 8) {
+            DATAFORGE_SHA512_ROUND(a,b,c,d,e,f,g,h, wk, t+0);
+            DATAFORGE_SHA512_ROUND(h,a,b,c,d,e,f,g, wk, t+1);
+            DATAFORGE_SHA512_ROUND(g,h,a,b,c,d,e,f, wk, t+2);
+            DATAFORGE_SHA512_ROUND(f,g,h,a,b,c,d,e, wk, t+3);
+            DATAFORGE_SHA512_ROUND(e,f,g,h,a,b,c,d, wk, t+4);
+            DATAFORGE_SHA512_ROUND(d,e,f,g,h,a,b,c, wk, t+5);
+            DATAFORGE_SHA512_ROUND(c,d,e,f,g,h,a,b, wk, t+6);
+            DATAFORGE_SHA512_ROUND(b,c,d,e,f,g,h,a, wk, t+7);
+        }
+
+        state[0] += a; state[1] += b; state[2] += c; state[3] += d;
+        state[4] += e; state[5] += f; state[6] += g; state[7] += h;
+
+        if (--block_count == 0) break;
+        data += 128;
     }
-
-    alignas(64) uint64_t wk[80];
-    for (int j = 0; j < 40; ++j)
-        _mm_store_si128(reinterpret_cast<__m128i*>(wk + 2 * j),
-                        _mm_add_epi64(w[j], _mm_load_si128(Kvec + j)));
-
-    uint64_t a = state[0], b = state[1], c = state[2], d = state[3];
-    uint64_t e = state[4], f = state[5], g = state[6], h = state[7];
-
-    for (int t = 0; t < 80; t += 8) {
-        DATAFORGE_SHA512_ROUND(a,b,c,d,e,f,g,h, wk, t+0);
-        DATAFORGE_SHA512_ROUND(h,a,b,c,d,e,f,g, wk, t+1);
-        DATAFORGE_SHA512_ROUND(g,h,a,b,c,d,e,f, wk, t+2);
-        DATAFORGE_SHA512_ROUND(f,g,h,a,b,c,d,e, wk, t+3);
-        DATAFORGE_SHA512_ROUND(e,f,g,h,a,b,c,d, wk, t+4);
-        DATAFORGE_SHA512_ROUND(d,e,f,g,h,a,b,c, wk, t+5);
-        DATAFORGE_SHA512_ROUND(c,d,e,f,g,h,a,b, wk, t+6);
-        DATAFORGE_SHA512_ROUND(b,c,d,e,f,g,h,a, wk, t+7);
-    }
-
-    state[0] += a; state[1] += b; state[2] += c; state[3] += d;
-    state[4] += e; state[5] += f; state[6] += g; state[7] += h;
 }
 
 #undef DATAFORGE_SHA512_ROUND

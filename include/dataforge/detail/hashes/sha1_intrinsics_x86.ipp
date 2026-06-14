@@ -50,7 +50,7 @@ inline bool sha1_runtime_has_sha1_accel()
 // (= W[0]) and data[12..15] lands at [31:0] (= W[3]).
 // --------------------------------------------------------------------------
 DATAFORGE_SHA_TARGET
-inline void process_block_sha1_x86(uint_least32_t(&state)[5], const void* msg)
+inline void process_block_sha1_x86(uint_least32_t(&state)[5], const void* msg, size_t block_count)
 {
     const __m128i MASK = _mm_set_epi64x(UINT64_C(0x0001020304050607), UINT64_C(0x08090a0b0c0d0e0f));
 
@@ -59,168 +59,172 @@ inline void process_block_sha1_x86(uint_least32_t(&state)[5], const void* msg)
     __m128i ABCD = _mm_shuffle_epi32(_mm_loadu_si128(reinterpret_cast<const __m128i*>(state)), 0x1B);
     __m128i E0 = _mm_set_epi32(static_cast<int>(state[4]), 0, 0, 0);
     
-    const __m128i ABCD_SAVE = ABCD;
-    const __m128i E0_SAVE   = E0;
+    for (;;) {
+        const __m128i ABCD_SAVE = ABCD;
+        const __m128i E0_SAVE   = E0;
 
-    __m128i E1;
-    __m128i MSG0, MSG1, MSG2, MSG3;
+        __m128i E1;
+        __m128i MSG0, MSG1, MSG2, MSG3;
 
-    /* Rounds 0-3 */
-    MSG0 = _mm_shuffle_epi8(_mm_loadu_si128(reinterpret_cast<const __m128i*>(data +  0)), MASK);
-    E0   = _mm_add_epi32(E0, MSG0);
-    E1   = ABCD;
-    ABCD = _mm_sha1rnds4_epu32(ABCD, E0, 0);
+        /* Rounds 0-3 */
+        MSG0 = _mm_shuffle_epi8(_mm_loadu_si128(reinterpret_cast<const __m128i*>(data +  0)), MASK);
+        E0   = _mm_add_epi32(E0, MSG0);
+        E1   = ABCD;
+        ABCD = _mm_sha1rnds4_epu32(ABCD, E0, 0);
 
-    /* Rounds 4-7 */
-    MSG1 = _mm_shuffle_epi8(_mm_loadu_si128(reinterpret_cast<const __m128i*>(data + 16)), MASK);
-    E1   = _mm_sha1nexte_epu32(E1, MSG1);
-    E0   = ABCD;
-    ABCD = _mm_sha1rnds4_epu32(ABCD, E1, 0);
-    MSG0 = _mm_sha1msg1_epu32(MSG0, MSG1);
+        /* Rounds 4-7 */
+        MSG1 = _mm_shuffle_epi8(_mm_loadu_si128(reinterpret_cast<const __m128i*>(data + 16)), MASK);
+        E1   = _mm_sha1nexte_epu32(E1, MSG1);
+        E0   = ABCD;
+        ABCD = _mm_sha1rnds4_epu32(ABCD, E1, 0);
+        MSG0 = _mm_sha1msg1_epu32(MSG0, MSG1);
 
-    /* Rounds 8-11 */
-    MSG2 = _mm_shuffle_epi8(_mm_loadu_si128(reinterpret_cast<const __m128i*>(data + 32)), MASK);
-    E0   = _mm_sha1nexte_epu32(E0, MSG2);
-    E1   = ABCD;
-    ABCD = _mm_sha1rnds4_epu32(ABCD, E0, 0);
-    MSG1 = _mm_sha1msg1_epu32(MSG1, MSG2);
-    MSG0 = _mm_xor_si128(MSG0, MSG2);
+        /* Rounds 8-11 */
+        MSG2 = _mm_shuffle_epi8(_mm_loadu_si128(reinterpret_cast<const __m128i*>(data + 32)), MASK);
+        E0   = _mm_sha1nexte_epu32(E0, MSG2);
+        E1   = ABCD;
+        ABCD = _mm_sha1rnds4_epu32(ABCD, E0, 0);
+        MSG1 = _mm_sha1msg1_epu32(MSG1, MSG2);
+        MSG0 = _mm_xor_si128(MSG0, MSG2);
 
-    /* Rounds 12-15 */
-    MSG3 = _mm_shuffle_epi8(_mm_loadu_si128(reinterpret_cast<const __m128i*>(data + 48)), MASK);
-    E1   = _mm_sha1nexte_epu32(E1, MSG3);
-    E0   = ABCD;
-    MSG0 = _mm_sha1msg2_epu32(MSG0, MSG3);
-    ABCD = _mm_sha1rnds4_epu32(ABCD, E1, 0);
-    MSG2 = _mm_sha1msg1_epu32(MSG2, MSG3);
-    MSG1 = _mm_xor_si128(MSG1, MSG3);
+        /* Rounds 12-15 */
+        MSG3 = _mm_shuffle_epi8(_mm_loadu_si128(reinterpret_cast<const __m128i*>(data + 48)), MASK);
+        E1   = _mm_sha1nexte_epu32(E1, MSG3);
+        E0   = ABCD;
+        MSG0 = _mm_sha1msg2_epu32(MSG0, MSG3);
+        ABCD = _mm_sha1rnds4_epu32(ABCD, E1, 0);
+        MSG2 = _mm_sha1msg1_epu32(MSG2, MSG3);
+        MSG1 = _mm_xor_si128(MSG1, MSG3);
 
-    /* Rounds 16-19 */
-    E0   = _mm_sha1nexte_epu32(E0, MSG0);
-    E1   = ABCD;
-    MSG1 = _mm_sha1msg2_epu32(MSG1, MSG0);
-    ABCD = _mm_sha1rnds4_epu32(ABCD, E0, 0);
-    MSG3 = _mm_sha1msg1_epu32(MSG3, MSG0);
-    MSG2 = _mm_xor_si128(MSG2, MSG0);
+        /* Rounds 16-19 */
+        E0   = _mm_sha1nexte_epu32(E0, MSG0);
+        E1   = ABCD;
+        MSG1 = _mm_sha1msg2_epu32(MSG1, MSG0);
+        ABCD = _mm_sha1rnds4_epu32(ABCD, E0, 0);
+        MSG3 = _mm_sha1msg1_epu32(MSG3, MSG0);
+        MSG2 = _mm_xor_si128(MSG2, MSG0);
 
-    /* Rounds 20-23 */
-    E1   = _mm_sha1nexte_epu32(E1, MSG1);
-    E0   = ABCD;
-    MSG2 = _mm_sha1msg2_epu32(MSG2, MSG1);
-    ABCD = _mm_sha1rnds4_epu32(ABCD, E1, 1);
-    MSG0 = _mm_sha1msg1_epu32(MSG0, MSG1);
-    MSG3 = _mm_xor_si128(MSG3, MSG1);
+        /* Rounds 20-23 */
+        E1   = _mm_sha1nexte_epu32(E1, MSG1);
+        E0   = ABCD;
+        MSG2 = _mm_sha1msg2_epu32(MSG2, MSG1);
+        ABCD = _mm_sha1rnds4_epu32(ABCD, E1, 1);
+        MSG0 = _mm_sha1msg1_epu32(MSG0, MSG1);
+        MSG3 = _mm_xor_si128(MSG3, MSG1);
 
-    /* Rounds 24-27 */
-    E0   = _mm_sha1nexte_epu32(E0, MSG2);
-    E1   = ABCD;
-    MSG3 = _mm_sha1msg2_epu32(MSG3, MSG2);
-    ABCD = _mm_sha1rnds4_epu32(ABCD, E0, 1);
-    MSG1 = _mm_sha1msg1_epu32(MSG1, MSG2);
-    MSG0 = _mm_xor_si128(MSG0, MSG2);
+        /* Rounds 24-27 */
+        E0   = _mm_sha1nexte_epu32(E0, MSG2);
+        E1   = ABCD;
+        MSG3 = _mm_sha1msg2_epu32(MSG3, MSG2);
+        ABCD = _mm_sha1rnds4_epu32(ABCD, E0, 1);
+        MSG1 = _mm_sha1msg1_epu32(MSG1, MSG2);
+        MSG0 = _mm_xor_si128(MSG0, MSG2);
 
-    /* Rounds 28-31 */
-    E1   = _mm_sha1nexte_epu32(E1, MSG3);
-    E0   = ABCD;
-    MSG0 = _mm_sha1msg2_epu32(MSG0, MSG3);
-    ABCD = _mm_sha1rnds4_epu32(ABCD, E1, 1);
-    MSG2 = _mm_sha1msg1_epu32(MSG2, MSG3);
-    MSG1 = _mm_xor_si128(MSG1, MSG3);
+        /* Rounds 28-31 */
+        E1   = _mm_sha1nexte_epu32(E1, MSG3);
+        E0   = ABCD;
+        MSG0 = _mm_sha1msg2_epu32(MSG0, MSG3);
+        ABCD = _mm_sha1rnds4_epu32(ABCD, E1, 1);
+        MSG2 = _mm_sha1msg1_epu32(MSG2, MSG3);
+        MSG1 = _mm_xor_si128(MSG1, MSG3);
 
-    /* Rounds 32-35 */
-    E0   = _mm_sha1nexte_epu32(E0, MSG0);
-    E1   = ABCD;
-    MSG1 = _mm_sha1msg2_epu32(MSG1, MSG0);
-    ABCD = _mm_sha1rnds4_epu32(ABCD, E0, 1);
-    MSG3 = _mm_sha1msg1_epu32(MSG3, MSG0);
-    MSG2 = _mm_xor_si128(MSG2, MSG0);
+        /* Rounds 32-35 */
+        E0   = _mm_sha1nexte_epu32(E0, MSG0);
+        E1   = ABCD;
+        MSG1 = _mm_sha1msg2_epu32(MSG1, MSG0);
+        ABCD = _mm_sha1rnds4_epu32(ABCD, E0, 1);
+        MSG3 = _mm_sha1msg1_epu32(MSG3, MSG0);
+        MSG2 = _mm_xor_si128(MSG2, MSG0);
 
-    /* Rounds 36-39 */
-    E1   = _mm_sha1nexte_epu32(E1, MSG1);
-    E0   = ABCD;
-    MSG2 = _mm_sha1msg2_epu32(MSG2, MSG1);
-    ABCD = _mm_sha1rnds4_epu32(ABCD, E1, 1);
-    MSG0 = _mm_sha1msg1_epu32(MSG0, MSG1);
-    MSG3 = _mm_xor_si128(MSG3, MSG1);
+        /* Rounds 36-39 */
+        E1   = _mm_sha1nexte_epu32(E1, MSG1);
+        E0   = ABCD;
+        MSG2 = _mm_sha1msg2_epu32(MSG2, MSG1);
+        ABCD = _mm_sha1rnds4_epu32(ABCD, E1, 1);
+        MSG0 = _mm_sha1msg1_epu32(MSG0, MSG1);
+        MSG3 = _mm_xor_si128(MSG3, MSG1);
 
-    /* Rounds 40-43 */
-    E0   = _mm_sha1nexte_epu32(E0, MSG2);
-    E1   = ABCD;
-    MSG3 = _mm_sha1msg2_epu32(MSG3, MSG2);
-    ABCD = _mm_sha1rnds4_epu32(ABCD, E0, 2);
-    MSG1 = _mm_sha1msg1_epu32(MSG1, MSG2);
-    MSG0 = _mm_xor_si128(MSG0, MSG2);
+        /* Rounds 40-43 */
+        E0   = _mm_sha1nexte_epu32(E0, MSG2);
+        E1   = ABCD;
+        MSG3 = _mm_sha1msg2_epu32(MSG3, MSG2);
+        ABCD = _mm_sha1rnds4_epu32(ABCD, E0, 2);
+        MSG1 = _mm_sha1msg1_epu32(MSG1, MSG2);
+        MSG0 = _mm_xor_si128(MSG0, MSG2);
 
-    /* Rounds 44-47 */
-    E1   = _mm_sha1nexte_epu32(E1, MSG3);
-    E0   = ABCD;
-    MSG0 = _mm_sha1msg2_epu32(MSG0, MSG3);
-    ABCD = _mm_sha1rnds4_epu32(ABCD, E1, 2);
-    MSG2 = _mm_sha1msg1_epu32(MSG2, MSG3);
-    MSG1 = _mm_xor_si128(MSG1, MSG3);
+        /* Rounds 44-47 */
+        E1   = _mm_sha1nexte_epu32(E1, MSG3);
+        E0   = ABCD;
+        MSG0 = _mm_sha1msg2_epu32(MSG0, MSG3);
+        ABCD = _mm_sha1rnds4_epu32(ABCD, E1, 2);
+        MSG2 = _mm_sha1msg1_epu32(MSG2, MSG3);
+        MSG1 = _mm_xor_si128(MSG1, MSG3);
 
-    /* Rounds 48-51 */
-    E0   = _mm_sha1nexte_epu32(E0, MSG0);
-    E1   = ABCD;
-    MSG1 = _mm_sha1msg2_epu32(MSG1, MSG0);
-    ABCD = _mm_sha1rnds4_epu32(ABCD, E0, 2);
-    MSG3 = _mm_sha1msg1_epu32(MSG3, MSG0);
-    MSG2 = _mm_xor_si128(MSG2, MSG0);
+        /* Rounds 48-51 */
+        E0   = _mm_sha1nexte_epu32(E0, MSG0);
+        E1   = ABCD;
+        MSG1 = _mm_sha1msg2_epu32(MSG1, MSG0);
+        ABCD = _mm_sha1rnds4_epu32(ABCD, E0, 2);
+        MSG3 = _mm_sha1msg1_epu32(MSG3, MSG0);
+        MSG2 = _mm_xor_si128(MSG2, MSG0);
 
-    /* Rounds 52-55 */
-    E1   = _mm_sha1nexte_epu32(E1, MSG1);
-    E0   = ABCD;
-    MSG2 = _mm_sha1msg2_epu32(MSG2, MSG1);
-    ABCD = _mm_sha1rnds4_epu32(ABCD, E1, 2);
-    MSG0 = _mm_sha1msg1_epu32(MSG0, MSG1);
-    MSG3 = _mm_xor_si128(MSG3, MSG1);
+        /* Rounds 52-55 */
+        E1   = _mm_sha1nexte_epu32(E1, MSG1);
+        E0   = ABCD;
+        MSG2 = _mm_sha1msg2_epu32(MSG2, MSG1);
+        ABCD = _mm_sha1rnds4_epu32(ABCD, E1, 2);
+        MSG0 = _mm_sha1msg1_epu32(MSG0, MSG1);
+        MSG3 = _mm_xor_si128(MSG3, MSG1);
 
-    /* Rounds 56-59 */
-    E0   = _mm_sha1nexte_epu32(E0, MSG2);
-    E1   = ABCD;
-    MSG3 = _mm_sha1msg2_epu32(MSG3, MSG2);
-    ABCD = _mm_sha1rnds4_epu32(ABCD, E0, 2);
-    MSG1 = _mm_sha1msg1_epu32(MSG1, MSG2);
-    MSG0 = _mm_xor_si128(MSG0, MSG2);
+        /* Rounds 56-59 */
+        E0   = _mm_sha1nexte_epu32(E0, MSG2);
+        E1   = ABCD;
+        MSG3 = _mm_sha1msg2_epu32(MSG3, MSG2);
+        ABCD = _mm_sha1rnds4_epu32(ABCD, E0, 2);
+        MSG1 = _mm_sha1msg1_epu32(MSG1, MSG2);
+        MSG0 = _mm_xor_si128(MSG0, MSG2);
 
-    /* Rounds 60-63 */
-    E1   = _mm_sha1nexte_epu32(E1, MSG3);
-    E0   = ABCD;
-    MSG0 = _mm_sha1msg2_epu32(MSG0, MSG3);
-    ABCD = _mm_sha1rnds4_epu32(ABCD, E1, 3);
-    MSG2 = _mm_sha1msg1_epu32(MSG2, MSG3);
-    MSG1 = _mm_xor_si128(MSG1, MSG3);
+        /* Rounds 60-63 */
+        E1   = _mm_sha1nexte_epu32(E1, MSG3);
+        E0   = ABCD;
+        MSG0 = _mm_sha1msg2_epu32(MSG0, MSG3);
+        ABCD = _mm_sha1rnds4_epu32(ABCD, E1, 3);
+        MSG2 = _mm_sha1msg1_epu32(MSG2, MSG3);
+        MSG1 = _mm_xor_si128(MSG1, MSG3);
 
-    /* Rounds 64-67 */
-    E0   = _mm_sha1nexte_epu32(E0, MSG0);
-    E1   = ABCD;
-    MSG1 = _mm_sha1msg2_epu32(MSG1, MSG0);
-    ABCD = _mm_sha1rnds4_epu32(ABCD, E0, 3);
-    MSG3 = _mm_sha1msg1_epu32(MSG3, MSG0);
-    MSG2 = _mm_xor_si128(MSG2, MSG0);
+        /* Rounds 64-67 */
+        E0   = _mm_sha1nexte_epu32(E0, MSG0);
+        E1   = ABCD;
+        MSG1 = _mm_sha1msg2_epu32(MSG1, MSG0);
+        ABCD = _mm_sha1rnds4_epu32(ABCD, E0, 3);
+        MSG3 = _mm_sha1msg1_epu32(MSG3, MSG0);
+        MSG2 = _mm_xor_si128(MSG2, MSG0);
 
-    /* Rounds 68-71 */
-    E1   = _mm_sha1nexte_epu32(E1, MSG1);
-    E0   = ABCD;
-    MSG2 = _mm_sha1msg2_epu32(MSG2, MSG1);
-    ABCD = _mm_sha1rnds4_epu32(ABCD, E1, 3);
-    MSG3 = _mm_xor_si128(MSG3, MSG1);
+        /* Rounds 68-71 */
+        E1   = _mm_sha1nexte_epu32(E1, MSG1);
+        E0   = ABCD;
+        MSG2 = _mm_sha1msg2_epu32(MSG2, MSG1);
+        ABCD = _mm_sha1rnds4_epu32(ABCD, E1, 3);
+        MSG3 = _mm_xor_si128(MSG3, MSG1);
 
-    /* Rounds 72-75 */
-    E0   = _mm_sha1nexte_epu32(E0, MSG2);
-    E1   = ABCD;
-    MSG3 = _mm_sha1msg2_epu32(MSG3, MSG2);
-    ABCD = _mm_sha1rnds4_epu32(ABCD, E0, 3);
+        /* Rounds 72-75 */
+        E0   = _mm_sha1nexte_epu32(E0, MSG2);
+        E1   = ABCD;
+        MSG3 = _mm_sha1msg2_epu32(MSG3, MSG2);
+        ABCD = _mm_sha1rnds4_epu32(ABCD, E0, 3);
 
-    /* Rounds 76-79 */
-    E1   = _mm_sha1nexte_epu32(E1, MSG3);
-    E0   = ABCD;
-    ABCD = _mm_sha1rnds4_epu32(ABCD, E1, 3);
+        /* Rounds 76-79 */
+        E1   = _mm_sha1nexte_epu32(E1, MSG3);
+        E0   = ABCD;
+        ABCD = _mm_sha1rnds4_epu32(ABCD, E1, 3);
 
-    /* Accumulate */
-    E0   = _mm_sha1nexte_epu32(E0, E0_SAVE);
-    ABCD = _mm_add_epi32(ABCD, ABCD_SAVE);
+        /* Accumulate */
+        E0   = _mm_sha1nexte_epu32(E0, E0_SAVE);
+        ABCD = _mm_add_epi32(ABCD, ABCD_SAVE);
 
+        if (!--block_count) break;
+        data += 64;
+    }
     /* Store: reverse dwords back to memory layout */
     _mm_storeu_si128(reinterpret_cast<__m128i*>(state),
                      _mm_shuffle_epi32(ABCD, 0x1B));
