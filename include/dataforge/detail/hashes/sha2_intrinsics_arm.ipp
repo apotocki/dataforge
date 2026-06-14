@@ -40,7 +40,7 @@ inline bool sha256_runtime_has_sha256_accel()
 }
 #endif
 
-inline void process_block_sha256_arm(uint32_t(&state)[8], const void* msg, size_t block_count)
+inline void process_blocks_sha256_arm(uint32_t(&state)[8], const void* msg, size_t block_count)
 {
     const auto* data = reinterpret_cast<const uint8_t*>(msg);
 

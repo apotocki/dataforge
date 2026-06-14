@@ -50,7 +50,7 @@ inline bool sha1_runtime_has_sha1_accel()
 // (= W[0]) and data[12..15] lands at [31:0] (= W[3]).
 // --------------------------------------------------------------------------
 DATAFORGE_SHA_TARGET
-inline void process_block_sha1_x86(uint_least32_t(&state)[5], const void* msg, size_t block_count)
+inline void process_blocks_sha1_x86(uint_least32_t(&state)[5], const void* msg, size_t block_count)
 {
     const __m128i MASK = _mm_set_epi64x(UINT64_C(0x0001020304050607), UINT64_C(0x08090a0b0c0d0e0f));
 

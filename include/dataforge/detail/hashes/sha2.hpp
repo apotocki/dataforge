@@ -154,10 +154,10 @@ struct sha2_impl : sha2_impl_base<Type>
 
     void reset();
 
-    void process_block(const void* msg, size_t block_count);
+    void process_blocks(const void* msg, size_t block_count);
     void store_bit_count(void* dst) const;
 
-    static void process_block_scalar(word_type(&state)[state_size], const void* msg, size_t block_count) noexcept;
+    static void process_blocks_scalar(word_type(&state)[state_size], const void* msg, size_t block_count) noexcept;
 
     inline std::span<digest_word_type, state_size> digest_span() { return H; }
 

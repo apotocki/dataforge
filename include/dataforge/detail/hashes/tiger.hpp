@@ -46,7 +46,6 @@ struct tiger_impl : tiger_base, digest_base<tiger_impl, 64>
 	static constexpr size_t state_size = 3;
 	inline std::span<digest_word_type, state_size> digest_span() { return state; }
 
-	using digest_base<tiger_impl, 64>::process_block;
     void process_block(const void* msg);
 
     void reset();

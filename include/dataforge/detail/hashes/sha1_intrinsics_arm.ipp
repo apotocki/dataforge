@@ -55,7 +55,7 @@ inline bool sha1_runtime_has_sha1_accel()
 // vsha1cq_u32 / vsha1pq_u32 / vsha1mq_u32  -> four rounds each
 // vsha1su0q_u32 / vsha1su1q_u32  -> message schedule
 // --------------------------------------------------------------------------
-inline void process_block_sha1_arm(uint_least32_t(&state)[5], const void* msg, size_t block_count)
+inline void process_blocks_sha1_arm(uint_least32_t(&state)[5], const void* msg, size_t block_count)
 {
     const auto* data = reinterpret_cast<const uint8_t*>(msg);
 
@@ -226,6 +226,7 @@ inline void process_block_sha1_arm(uint_least32_t(&state)[5], const void* msg, s
         abcd = vaddq_u32(abcd, abcd_save);
         e1  += e_save;
 
+        e_scalar = e1;
         if (--block_count == 0) break;
         data += 64;
     }

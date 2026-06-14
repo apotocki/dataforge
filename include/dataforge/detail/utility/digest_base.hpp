@@ -68,7 +68,7 @@ struct digest_base
 
     void input(const void* vdata, size_t len);
 
-    inline void process_block(const void* msg, size_t block_count) noexcept
+    inline void process_blocks(const void* msg, size_t block_count) noexcept
     {
         const auto* data = reinterpret_cast<const uint8_t*>(msg);
         for (;;) {
@@ -98,7 +98,7 @@ void digest_base<DerivedT, BlockSizeV, SizeT, BCV>::input(const void* vdata, siz
         std::memcpy(buffer_ + bytes_in_buf, data, bytes_to_copy);
         assert (bytes_to_copy + bytes_in_buf <= block_size);
         if (bytes_to_copy + bytes_in_buf == block_size && (!DerivedT::allow_full_buffer || bytes_to_copy < len)) {
-            static_cast<DerivedT&>(*this).process_block(buffer_, 1);
+            static_cast<DerivedT&>(*this).process_blocks(buffer_, 1);
             len-= bytes_to_copy;
             data += bytes_to_copy;
         } else {
@@ -120,7 +120,7 @@ void digest_base<DerivedT, BlockSizeV, SizeT, BCV>::input(const void* vdata, siz
 
     if (block_count) {
         //static_cast<DerivedT&>(*this).count_bytes(bytes_to_process);
-        static_cast<DerivedT&>(*this).process_block(data, block_count);
+        static_cast<DerivedT&>(*this).process_blocks(data, block_count);
         data += bytes_to_process;
         len -= bytes_to_process;
     }
@@ -139,13 +139,13 @@ void digest_base<DerivedT, BlockSizeV, SizeT, BCV>::finalize()
     std::memset(buffer_ + bytes_in_buf + 1, 0, DerivedT::block_size - bytes_in_buf - 1);
     if (bytes_in_buf >= pad_end)
     {
-        static_cast<DerivedT&>(*this).process_block(buffer_, 1);
+        static_cast<DerivedT&>(*this).process_blocks(buffer_, 1);
         std::memset(buffer_, 0, DerivedT::block_size);
     }
 
     static_cast<DerivedT&>(*this).store_bit_count(buffer_ + pad_end);
 
-    static_cast<DerivedT&>(*this).process_block(buffer_, 1);
+    static_cast<DerivedT&>(*this).process_blocks(buffer_, 1);
 }
 
 }
