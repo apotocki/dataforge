@@ -22,7 +22,7 @@ jobs:
         sudo cmake --build /usr/src/googletest/build --target install
 
     - name: Configure
-      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      run: cmake -S tests -B build -DCMAKE_BUILD_TYPE=Release
 
     - name: Build
       run: |

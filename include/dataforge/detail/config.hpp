@@ -7,6 +7,14 @@
 ==============================================================================*/
 #pragma once
 
+// Set to 1 (via -DDATAFORGE_ACCEL_NATIVE=1) when the project links the
+// optional dataforge_accel library (accel/CMakeLists.txt).  The hash
+// implementations will then call the extern "C" functions provided by that
+// library instead of the built-in C++ backends.
+#ifndef DATAFORGE_ACCEL_NATIVE
+#define DATAFORGE_ACCEL_NATIVE 0
+#endif
+
 #ifndef DATAFORGE_ACCEL_AUTODETECT
 #define DATAFORGE_ACCEL_AUTODETECT 1
 #endif
