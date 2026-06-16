@@ -57,8 +57,8 @@
 #define DATAFORGE_ACCEL_IMPL DATAFORGE_ACCEL_NONE
 #endif
 #elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_ARM
-// ARM_NEON profile: NEON is always available on AArch64 — no downgrade.
-// ARM_CRYPTO profile: downgrade to scalar if crypto extensions can't be compiled.
+// ARM_NEON: always available, no downgrade.
+// ARM_SHA / ARM_CRYPTO: downgrade to scalar if SHA2 ext can't be compiled.
 #if DATAFORGE_ACCEL_ARM_USE_CRYPTO && !DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA2
 #undef DATAFORGE_ACCEL_IMPL
 #define DATAFORGE_ACCEL_IMPL DATAFORGE_ACCEL_NONE

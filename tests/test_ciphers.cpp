@@ -23,6 +23,8 @@
 
 #include <array>
 
+#if DATAFORGE_TEST_FULL_SUITE
+
 namespace dataforge {
 
 using namespace std::literals::string_view_literals;
@@ -614,3 +616,5 @@ void magma_test()
 //}
 
 }
+
+#endif // DATAFORGE_TEST_FULL_SUITE

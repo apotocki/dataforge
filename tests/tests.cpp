@@ -8,6 +8,23 @@
 
 using namespace dataforge;
 
+// ---------------------------------------------------------------------------
+// SHA-1 / SHA-2: compiled for any profile that has SHA acceleration, and for
+// the full suite (AUTO / SCALAR). These tests exercise the active backend —
+// SHA-NI, AVX-512, ARM SHA2, NEON, or scalar — and verify its correctness.
+// ---------------------------------------------------------------------------
+#if DATAFORGE_TEST_FULL_SUITE || DATAFORGE_TEST_HAS_SHA_ACCEL
+TEST(DataforgeTest, sha1) { sha1_test(); }
+TEST(DataforgeTest, sha2) { sha2_test(); }
+#endif
+
+// ---------------------------------------------------------------------------
+// Everything below has only scalar implementations today.
+// Compiled only for the full suite (AUTO and SCALAR profiles) to avoid
+// redundant runs in forced ISA profiles that don't affect these algorithms.
+// ---------------------------------------------------------------------------
+#if DATAFORGE_TEST_FULL_SUITE
+
 TEST(DataforgeTest, generic_base) { generic_base_test(); }
 TEST(DataforgeTest, base16) { base16_test(); }
 TEST(DataforgeTest, base32) { base32_test(); }
@@ -30,8 +47,6 @@ TEST(DataforgeTest, md5) { md5_test(); }
 TEST(DataforgeTest, md6) { md6_test(); }
 TEST(DataforgeTest, ripemd) { ripemd_test(); }
 TEST(DataforgeTest, tiger) { tiger_test(); }
-TEST(DataforgeTest, sha1) { sha1_test(); }
-TEST(DataforgeTest, sha2) { sha2_test(); }
 TEST(DataforgeTest, sha3) { sha3_test(); }
 TEST(DataforgeTest, belt_hash) { belt_hash_test(); }
 TEST(DataforgeTest, gost) { gost_test(); }
@@ -48,7 +63,7 @@ TEST(DataforgeTest, aes) { aes_test(); }
 TEST(DataforgeTest, blowfish) { blowfish_test(); }
 TEST(DataforgeTest, belt) { belt_test(); }
 TEST(DataforgeTest, magma) { magma_test(); }
-//TEST(DataforgeTest, magma) { kuznyechik_test(); }
+//TEST(DataforgeTest, kuznyechik) { kuznyechik_test(); }
 
 TEST(DataforgeTest, group) { group_test(); }
 TEST(DataforgeTest, deflate) { deflate_test(); }
@@ -56,7 +71,9 @@ TEST(DataforgeTest, bzip2) { bzip2_test(); }
 TEST(DataforgeTest, lzma) { lzma_test(); }
 TEST(DataforgeTest, lz4) { lz4_test(); }
 
-// command line: --gtest_filter=DataforgeTest.blake 
+#endif // DATAFORGE_TEST_FULL_SUITE
+
+// command line: --gtest_filter=DataforgeTest.blake
 int main(int argc, char** argv)
 {
     // the path to e.g. icudt72l.dat
@@ -69,7 +86,6 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    ///////////////
     ::testing::InitGoogleTest(&argc, argv);
     u_cleanup();
 

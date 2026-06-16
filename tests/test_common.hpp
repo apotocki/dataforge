@@ -26,6 +26,68 @@
 
 #include "dataforge/quark_push_iterator.hpp"
 #include "dataforge/quark_pull_iterator.hpp"
+#include "dataforge/detail/config.hpp"
+
+// ---------------------------------------------------------------------------
+// Acceleration availability macros for test guards.
+//
+// Wrap tests that exercise a specific accelerated implementation in:
+//
+//   #if DATAFORGE_TEST_HAS_X86_SHA
+//   TEST(Sha256Test, ShaNeAccel) { ... }
+//   #endif
+//
+// AUTO profile includes all guards because at runtime the best available
+// backend is selected — every accelerated code path can potentially execute.
+//
+// Hierarchy (each level implies all levels below it):
+//   X86:  X86_SHA_NI  ⊂  X86_AVX512
+//   ARM:  ARM_NEON  ⊂  ARM_SHA  ⊂  ARM_CRYPTO
+// ---------------------------------------------------------------------------
+
+// x86 SHA-NI: SHA-1, SHA-224, SHA-256 via Intel SHA Extensions.
+#define DATAFORGE_TEST_HAS_X86_SHA ( \
+    DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_X86_SHA_NI || \
+    DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_X86_AVX512 || \
+    DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_AUTO)
+
+// x86 AVX-512: SHA-224/256 AVX-512 schedule + SHA-384/512 AVX-512 schedule.
+#define DATAFORGE_TEST_HAS_X86_AVX512 ( \
+    DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_X86_AVX512 || \
+    DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_AUTO)
+
+// AArch64 NEON: vectorised SHA-384/512 message schedule (all AArch64 CPUs).
+#define DATAFORGE_TEST_HAS_ARM_NEON ( \
+    DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_ARM_NEON   || \
+    DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_ARM_SHA    || \
+    DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_ARM_CRYPTO || \
+    DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_AUTO)
+
+// AArch64 SHA2 crypto ext: SHA-1, SHA-224, SHA-256 (ARMv8-A+crypto).
+#define DATAFORGE_TEST_HAS_ARM_SHA ( \
+    DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_ARM_SHA    || \
+    DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_ARM_CRYPTO || \
+    DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_AUTO)
+
+// AArch64 SHA-512 hw ext: SHA-384/512 via ARMv8.2-A SHA-512 extension.
+#define DATAFORGE_TEST_HAS_ARM_CRYPTO ( \
+    DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_ARM_CRYPTO || \
+    DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_AUTO)
+
+// Any SHA acceleration is active — SHA-1/SHA-2 tests exercise the accelerated
+// block function and are worth running even outside the full suite.
+#define DATAFORGE_TEST_HAS_SHA_ACCEL ( \
+    DATAFORGE_TEST_HAS_X86_SHA    || \
+    DATAFORGE_TEST_HAS_ARM_NEON   || \
+    DATAFORGE_TEST_HAS_ARM_SHA    || \
+    DATAFORGE_TEST_HAS_ARM_CRYPTO)
+
+// Full algorithm suite: run all tests regardless of acceleration.
+// True for AUTO (runtime detection covers every path) and SCALAR (baseline).
+// Forced ISA profiles only need to run the algorithms they actually accelerate.
+#define DATAFORGE_TEST_FULL_SUITE ( \
+    DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_AUTO || \
+    DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_SCALAR)
 
 template <typename RangeT1, typename RangeT2>
 bool equal_to(RangeT1 const& l, RangeT2 const& r)

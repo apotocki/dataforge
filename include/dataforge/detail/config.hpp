@@ -43,17 +43,25 @@
 //                                       AArch64); SHA-1/224/256 use scalar.
 //                                       Runs on any AArch64 CPU.
 //
-//   DATAFORGE_PROFILE_ARM_CRYPTO  (4)  AArch64: SHA2 crypto extension for
-//                                       SHA-1/224/256, SHA-512 extension for
-//                                       SHA-384/512 (with NEON fallback).
-//                                       Requires CPU support (ARMv8+crypto).
+//   DATAFORGE_PROFILE_ARM_SHA     (4)  AArch64: SHA2 crypto extension for
+//                                       SHA-1/224/256; NEON for SHA-384/512.
+//                                       Requires ARMv8+SHA2 (e.g. Cortex-A53
+//                                       with crypto option, Cortex-A55/A57…).
+//
+//   DATAFORGE_PROFILE_ARM_CRYPTO  (5)  AArch64: SHA2 crypto extension for
+//                                       SHA-1/224/256 AND SHA-512 extension
+//                                       for SHA-384/512 (ARMv8.2-A+sha3).
+//                                       Requires both HWCAP_SHA2 and
+//                                       HWCAP_SHA512 (e.g. Cortex-A55 rev≥1,
+//                                       Apple M-series, Neoverse N1/V1).
 // ---------------------------------------------------------------------------
 #define DATAFORGE_PROFILE_AUTO        (-1)
 #define DATAFORGE_PROFILE_SCALAR        0
 #define DATAFORGE_PROFILE_X86_SHA_NI    1
 #define DATAFORGE_PROFILE_X86_AVX512    2
 #define DATAFORGE_PROFILE_ARM_NEON      3
-#define DATAFORGE_PROFILE_ARM_CRYPTO    4
+#define DATAFORGE_PROFILE_ARM_SHA       4
+#define DATAFORGE_PROFILE_ARM_CRYPTO    5
 
 #ifndef DATAFORGE_ACCEL_PROFILE
 #define DATAFORGE_ACCEL_PROFILE DATAFORGE_PROFILE_AUTO
@@ -125,8 +133,14 @@
 #  else
 #    define DATAFORGE_ACCEL_IMPL  DATAFORGE_ACCEL_NONE
 #  endif
+#elif DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_ARM_SHA
+#  if DATAFORGE_TARGET_ARM64
+#    define DATAFORGE_ACCEL_IMPL  DATAFORGE_ACCEL_ARM
+#  else
+#    define DATAFORGE_ACCEL_IMPL  DATAFORGE_ACCEL_NONE
+#  endif
 #elif DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_ARM_CRYPTO
-#  if DATAFORGE_TARGET_ARM
+#  if DATAFORGE_TARGET_ARM64
 #    define DATAFORGE_ACCEL_IMPL  DATAFORGE_ACCEL_ARM
 #  else
 #    define DATAFORGE_ACCEL_IMPL  DATAFORGE_ACCEL_NONE
@@ -136,14 +150,27 @@
 #  define DATAFORGE_ACCEL_IMPL  DATAFORGE_ACCEL_NONE
 #endif
 
-// Internal flag: enable ARM SHA2/SHA-512 crypto extension intrinsics.
-// ARM_NEON profile keeps DATAFORGE_ACCEL_IMPL=ARM but uses NEON for SHA-512
-// and scalar for SHA-1/224/256 — no crypto extension required.
-// ARM_CRYPTO profile additionally enables SHA2/SHA-512 extension intrinsics.
-#if DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_ARM_CRYPTO
+// Internal flags for ARM crypto tiers (do not set directly):
+//
+//   DATAFORGE_ACCEL_ARM_USE_CRYPTO    — enable SHA2 crypto ext for SHA-1/224/256.
+//                                       Set by ARM_SHA and ARM_CRYPTO profiles.
+//
+//   DATAFORGE_ACCEL_ARM_USE_SHA512_EXT — enable SHA-512 hw extension (ARMv8.2-A)
+//                                        for SHA-384/512 family.
+//                                        Set only by ARM_CRYPTO profile.
+//                                        When 0 with ARM impl, SHA-384/512 falls
+//                                        back to NEON (ARM_SHA) or scalar (ARM_NEON).
+#if DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_ARM_SHA || \
+    DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_ARM_CRYPTO
 #  define DATAFORGE_ACCEL_ARM_USE_CRYPTO  1
 #else
 #  define DATAFORGE_ACCEL_ARM_USE_CRYPTO  0
+#endif
+
+#if DATAFORGE_ACCEL_PROFILE == DATAFORGE_PROFILE_ARM_CRYPTO
+#  define DATAFORGE_ACCEL_ARM_USE_SHA512_EXT  1
+#else
+#  define DATAFORGE_ACCEL_ARM_USE_SHA512_EXT  0
 #endif
 
 // Internal flag: enable AVX-512 message schedule for SHA-224/256.

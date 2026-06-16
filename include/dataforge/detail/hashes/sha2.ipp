@@ -339,7 +339,7 @@ inline void sha2_impl<Type>::process_blocks(const void* msg, size_t block_count)
 #endif
 
 #elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_ARM
-#   if DATAFORGE_ACCEL_ARM_USE_CRYPTO && DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA512
+#   if DATAFORGE_ACCEL_ARM_USE_SHA512_EXT && DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA512
         process_blocks_sha512_arm(H, msg, block_count);
 #   elif DATAFORGE_ACCEL_CAN_COMPILE_ARM_NEON_SHA512
         process_blocks_sha512_arm_neon(H, msg, block_count);

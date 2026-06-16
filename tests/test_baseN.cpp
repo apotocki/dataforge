@@ -17,6 +17,8 @@
 
 #include "dataforge/basic/buffer.hpp"
 
+#if DATAFORGE_TEST_FULL_SUITE
+
 namespace dataforge {
 
 ///////////////
@@ -247,3 +249,5 @@ void z85_test()
 }
 
 }
+
+#endif // DATAFORGE_TEST_FULL_SUITE

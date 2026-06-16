@@ -155,7 +155,8 @@ accelerated algorithms. Set it via `-DDATAFORGE_ACCEL_PROFILE=<value>`:
 | `1` | `X86_SHA_NI` | x86 forced: SHA-NI + SSE4.1 for SHA-1/224/256; SSE4.1 for SHA-512 family. No runtime probing — CPU **must** support these. |
 | `2` | `X86_AVX512` | x86 forced: SHA-NI for SHA-1/224/256 + AVX-512 message schedule for **all** SHA-2 variants including SHA-224/256. CPU **must** support AVX-512F/VL. |
 | `3` | `ARM_NEON` | AArch64 forced: NEON-vectorised SHA-512 message schedule; SHA-1/224/256 use scalar. Runs on **any** AArch64 CPU. |
-| `4` | `ARM_CRYPTO` | AArch64 forced: SHA2 crypto extensions for SHA-1/224/256; SHA-512 hardware extension (with NEON fallback). CPU **must** support ARMv8+crypto. |
+| `4` | `ARM_SHA` | AArch64 forced: SHA2 crypto extension for SHA-1/224/256; NEON for SHA-384/512. Requires `HWCAP_SHA2` (e.g. Cortex-A53+crypto, A55, A57…). |
+| `5` | `ARM_CRYPTO` | AArch64 forced: SHA2 crypto extension for SHA-1/224/256 **and** SHA-512 hardware extension for SHA-384/512. Requires both `HWCAP_SHA2` and `HWCAP_SHA512` (ARMv8.2-A+sha3, e.g. Cortex-A55 rev≥1, Apple M-series, Neoverse). |
 
 > **Note:** "Forced" profiles (`1`–`4`) call intrinsics directly without any
 > runtime CPU check. Running a forced binary on a CPU that lacks the required ISA
