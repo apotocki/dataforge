@@ -80,6 +80,16 @@ else()
 
     find_package(ZLIB REQUIRED)
     find_package(ICU REQUIRED COMPONENTS i18n uc data)
+    # FindICU.cmake sometimes fails to populate INTERFACE_INCLUDE_DIRECTORIES on
+    # the imported targets when the package lives outside the default prefix
+    # (e.g. Homebrew keg-only). Patch it up explicitly using ICU_INCLUDE_DIRS,
+    # which FindICU always sets regardless.
+    foreach(_icu_comp IN ITEMS ICU::i18n ICU::uc ICU::data)
+        if(TARGET ${_icu_comp} AND ICU_INCLUDE_DIRS)
+            set_target_properties(${_icu_comp} PROPERTIES
+                INTERFACE_INCLUDE_DIRECTORIES "${ICU_INCLUDE_DIRS}")
+        endif()
+    endforeach()
     find_package(BZip2 REQUIRED)
 
     # LZ4 fallback search
