@@ -1,0 +1,598 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="dataforge">
+      <UniqueIdentifier>{1cca76b4-b9f3-4fcf-8782-c62f1f06e142}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dataforge\base_xx">
+      <UniqueIdentifier>{5ee652a0-97e6-4cce-bc3f-b800446c69d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dataforge\basic">
+      <UniqueIdentifier>{cc871596-6dee-48a9-98c1-4f9544906ffa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dataforge\checksum">
+      <UniqueIdentifier>{015e87bc-5bd0-49dc-b49f-25069e74d21f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dataforge\ciphers">
+      <UniqueIdentifier>{a73eed6d-9d9a-4c38-b994-17ac1ccac6f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dataforge\compression">
+      <UniqueIdentifier>{c3637658-0fdc-4831-8f19-bb299d401fba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dataforge\detail">
+      <UniqueIdentifier>{828606ef-a0cd-492b-b28d-40df2ca9af4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dataforge\detail\unicode">
+      <UniqueIdentifier>{7b40f7c6-511f-4629-a6e0-b0da50e47511}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dataforge\detail\basic">
+      <UniqueIdentifier>{32c09adb-da05-4fa6-b746-24fccc37e686}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dataforge\detail\base_xx">
+      <UniqueIdentifier>{640e4ab6-dd1e-4e27-91e0-de3dfab47a43}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dataforge\detail\crc">
+      <UniqueIdentifier>{ff7f8366-0c4b-4d80-8715-a4654b993932}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dataforge\detail\adler32">
+      <UniqueIdentifier>{81ee731e-6f2f-4026-94b9-fcd6e3bbd204}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dataforge\detail\hashes">
+      <UniqueIdentifier>{72c104eb-ae55-43b3-86c9-70a0bb66e49d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dataforge\detail\hashes\sha1">
+      <UniqueIdentifier>{a16220f0-280b-44fd-9d9e-6dc17ac5de54}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dataforge\detail\hashes\sha2">
+      <UniqueIdentifier>{3702d47a-90d6-4d0f-89e8-a2b9f89c01c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dataforge\detail\utility">
+      <UniqueIdentifier>{fe2501d3-33a5-4806-b0e4-8cf1e84c6125}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dataforge\detail\compression">
+      <UniqueIdentifier>{41d7ae06-31e5-4517-a840-065aff9e2fa0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dataforge\detail\ciphers">
+      <UniqueIdentifier>{506b23c6-6375-4514-956d-35cc3c3a72f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dataforge\detail\bsd_checksum">
+      <UniqueIdentifier>{3d1f7850-566a-44a3-a1fb-4b904c1c7ff3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dataforge\hashes">
+      <UniqueIdentifier>{0638fe19-772a-4f8c-bbfb-d466c6c152df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dataforge\unicode">
+      <UniqueIdentifier>{2235c37e-e025-48bb-9760-44309d3f7534}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="accel">
+      <UniqueIdentifier>{2dca486a-1640-430d-b3c5-005bc9d43fd8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\dataforge\pull_converter.hpp">
+      <Filter>dataforge</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\push_converter.hpp">
+      <Filter>dataforge</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\quark_pull_iterator.hpp">
+      <Filter>dataforge</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\quark_push_iterator.hpp">
+      <Filter>dataforge</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\base_xx\ascii85.hpp">
+      <Filter>dataforge\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\base_xx\base.hpp">
+      <Filter>dataforge\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\base_xx\base16.hpp">
+      <Filter>dataforge\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\base_xx\base32.hpp">
+      <Filter>dataforge\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\base_xx\base58.hpp">
+      <Filter>dataforge\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\base_xx\base64.hpp">
+      <Filter>dataforge\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\base_xx\z85.hpp">
+      <Filter>dataforge\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\basic\buffer.hpp">
+      <Filter>dataforge\basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\basic\filter.hpp">
+      <Filter>dataforge\basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\basic\group.hpp">
+      <Filter>dataforge\basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\basic\mapper.hpp">
+      <Filter>dataforge\basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\checksum\adler32.hpp">
+      <Filter>dataforge\checksum</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\checksum\bsd.hpp">
+      <Filter>dataforge\checksum</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\checksum\crc.hpp">
+      <Filter>dataforge\checksum</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\ciphers\aes.hpp">
+      <Filter>dataforge\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\ciphers\belt.hpp">
+      <Filter>dataforge\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\ciphers\blowfish.hpp">
+      <Filter>dataforge\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\ciphers\defs.hpp">
+      <Filter>dataforge\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\ciphers\des.hpp">
+      <Filter>dataforge\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\ciphers\kuznyechik.hpp">
+      <Filter>dataforge\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\ciphers\magma.hpp">
+      <Filter>dataforge\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\ciphers\rc2.hpp">
+      <Filter>dataforge\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\ciphers\rc4.hpp">
+      <Filter>dataforge\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\ciphers\rc5.hpp">
+      <Filter>dataforge\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\ciphers\rc6.hpp">
+      <Filter>dataforge\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\compression\bzip2.hpp">
+      <Filter>dataforge\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\compression\deflate.hpp">
+      <Filter>dataforge\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\compression\lz4.hpp">
+      <Filter>dataforge\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\compression\lzma.hpp">
+      <Filter>dataforge\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\config.hpp">
+      <Filter>dataforge\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\error_handler.hpp">
+      <Filter>dataforge\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\quarks.hpp">
+      <Filter>dataforge\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\unicode\gbr.hpp">
+      <Filter>dataforge\detail\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\unicode\icu.hpp">
+      <Filter>dataforge\detail\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\unicode\icucp_to_utf16.hpp">
+      <Filter>dataforge\detail\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\unicode\utf16.hpp">
+      <Filter>dataforge\detail\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\unicode\utf16_to_icucp.hpp">
+      <Filter>dataforge\detail\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\unicode\utf16_to_utf32.hpp">
+      <Filter>dataforge\detail\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\unicode\utf16_to_utf7.hpp">
+      <Filter>dataforge\detail\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\unicode\utf16_to_utf8.hpp">
+      <Filter>dataforge\detail\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\unicode\utf32_grapheme_enumerator_pusher.hpp">
+      <Filter>dataforge\detail\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\unicode\utf32_to_utf16.hpp">
+      <Filter>dataforge\detail\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\unicode\utf32_to_utf8.hpp">
+      <Filter>dataforge\detail\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\unicode\utf7.hpp">
+      <Filter>dataforge\detail\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\unicode\utf7_to_utf16.hpp">
+      <Filter>dataforge\detail\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\unicode\utf8_to_utf16.hpp">
+      <Filter>dataforge\detail\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\unicode\utf8_to_utf32.hpp">
+      <Filter>dataforge\detail\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\basic\be_to_i.hpp">
+      <Filter>dataforge\detail\basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\basic\buffer_pusher.hpp">
+      <Filter>dataforge\detail\basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\basic\enumerator_pusher.hpp">
+      <Filter>dataforge\detail\basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\basic\filter.hpp">
+      <Filter>dataforge\detail\basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\basic\grouper.hpp">
+      <Filter>dataforge\detail\basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\basic\i_to_be.hpp">
+      <Filter>dataforge\detail\basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\basic\i_to_le.hpp">
+      <Filter>dataforge\detail\basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\basic\le_to_i.hpp">
+      <Filter>dataforge\detail\basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\basic\seq_mapper_pusher.hpp">
+      <Filter>dataforge\detail\basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\base_xx\ascii85_to_bytes_pusher.hpp">
+      <Filter>dataforge\detail\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\base_xx\base16_to_bytes.hpp">
+      <Filter>dataforge\detail\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\base_xx\base32_to_bytes_pusher.hpp">
+      <Filter>dataforge\detail\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\base_xx\base58_to_bytes_pusher.hpp">
+      <Filter>dataforge\detail\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\base_xx\base64.hpp">
+      <Filter>dataforge\detail\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\base_xx\base64_to_bytes.hpp">
+      <Filter>dataforge\detail\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\base_xx\bytes_to_ascii85_pusher.hpp">
+      <Filter>dataforge\detail\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\base_xx\bytes_to_base16_pusher.hpp">
+      <Filter>dataforge\detail\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\base_xx\bytes_to_base32_pusher.hpp">
+      <Filter>dataforge\detail\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\base_xx\bytes_to_base58_pusher.hpp">
+      <Filter>dataforge\detail\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\base_xx\bytes_to_base64.hpp">
+      <Filter>dataforge\detail\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\base_xx\bytes_to_generic_base_pusher.hpp">
+      <Filter>dataforge\detail\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\base_xx\bytes_to_z85_pusher.hpp">
+      <Filter>dataforge\detail\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\base_xx\generic_base_to_bytes_pusher.hpp">
+      <Filter>dataforge\detail\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\base_xx\z85_to_bytes_pusher.hpp">
+      <Filter>dataforge\detail\base_xx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\crc\bytes_to_crc16_pusher.hpp">
+      <Filter>dataforge\detail\crc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\crc\bytes_to_crc32_pusher.hpp">
+      <Filter>dataforge\detail\crc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\crc\bytes_to_crc64_pusher.hpp">
+      <Filter>dataforge\detail\crc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\crc\bytes_to_crc8_pusher.hpp">
+      <Filter>dataforge\detail\crc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\crc\crc.hpp">
+      <Filter>dataforge\detail\crc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\adler32\bytes_to_adler32_pusher.hpp">
+      <Filter>dataforge\detail\adler32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\belt.hpp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\belt.ipp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\blake.hpp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\blake.ipp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\bytes_to_md6_pusher.hpp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\digest_generic_pusher.hpp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\gost.hpp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\gost.ipp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\md2.hpp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\md2.ipp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\md4.hpp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\md4.ipp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\md5.hpp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\md5.ipp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\md6.hpp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\md6.ipp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\ripemd.hpp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\ripemd.ipp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha3.hpp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha3.ipp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha_qrk.hpp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\streebog.hpp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\streebog.ipp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\tiger.hpp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\whirlpool.hpp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\whirlpool.ipp">
+      <Filter>dataforge\detail\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha1.hpp">
+      <Filter>dataforge\detail\hashes\sha1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha1.ipp">
+      <Filter>dataforge\detail\hashes\sha1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha1_intrinsics_arm.ipp">
+      <Filter>dataforge\detail\hashes\sha1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha1_intrinsics_x86.ipp">
+      <Filter>dataforge\detail\hashes\sha1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha2.hpp">
+      <Filter>dataforge\detail\hashes\sha2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha2.ipp">
+      <Filter>dataforge\detail\hashes\sha2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha2_intrinsics_arm.ipp">
+      <Filter>dataforge\detail\hashes\sha2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha2_intrinsics_x86.ipp">
+      <Filter>dataforge\detail\hashes\sha2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha512_intrinsics_arm.ipp">
+      <Filter>dataforge\detail\hashes\sha2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha512_intrinsics_x86.ipp">
+      <Filter>dataforge\detail\hashes\sha2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\hashes\sha512_neon_arm.ipp">
+      <Filter>dataforge\detail\hashes\sha2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\utility\basic_block_cipher.hpp">
+      <Filter>dataforge\detail\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\utility\basic_block_cipher.ipp">
+      <Filter>dataforge\detail\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\utility\counter.hpp">
+      <Filter>dataforge\detail\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\utility\concepts.hpp">
+      <Filter>dataforge\detail\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\utility\data_ops.hpp">
+      <Filter>dataforge\detail\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\utility\digest_base.hpp">
+      <Filter>dataforge\detail\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\compression\bzip2.hpp">
+      <Filter>dataforge\detail\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\compression\bzip2_compressor.hpp">
+      <Filter>dataforge\detail\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\compression\bzip2_extractor.hpp">
+      <Filter>dataforge\detail\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\compression\deflate.hpp">
+      <Filter>dataforge\detail\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\compression\deflater.hpp">
+      <Filter>dataforge\detail\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\compression\inflater.hpp">
+      <Filter>dataforge\detail\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\compression\lz4.hpp">
+      <Filter>dataforge\detail\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\compression\lz4_compressor.hpp">
+      <Filter>dataforge\detail\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\compression\lz4_extractor.hpp">
+      <Filter>dataforge\detail\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\compression\lzma.hpp">
+      <Filter>dataforge\detail\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\compression\lzma_compressor.hpp">
+      <Filter>dataforge\detail\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\compression\lzma_extractor.hpp">
+      <Filter>dataforge\detail\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\aes.hpp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\aes.ipp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\belt.hpp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\belt.ipp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\belt_encrypt.hpp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\blowfish.hpp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\blowfish.ipp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\des.hpp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\des.ipp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\kuznyechik.hpp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\kuznyechik.ipp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\magma.hpp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\magma.ipp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\rc2.hpp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\rc2.ipp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\rc4_crypter.hpp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\rc4.hpp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\rc4.ipp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\rc5.hpp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\rc5.ipp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\rc6.hpp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\ciphers\rc6.ipp">
+      <Filter>dataforge\detail\ciphers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\detail\bsd_checksum\bytes_to_bsd_checksum_pusher.hpp">
+      <Filter>dataforge\detail\bsd_checksum</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\hashes\belt.hpp">
+      <Filter>dataforge\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\hashes\blake.hpp">
+      <Filter>dataforge\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\hashes\gost.hpp">
+      <Filter>dataforge\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\hashes\md2.hpp">
+      <Filter>dataforge\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\hashes\md4.hpp">
+      <Filter>dataforge\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\hashes\md5.hpp">
+      <Filter>dataforge\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\hashes\md6.hpp">
+      <Filter>dataforge\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\hashes\ripemd.hpp">
+      <Filter>dataforge\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\hashes\sha1.hpp">
+      <Filter>dataforge\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\hashes\sha2.hpp">
+      <Filter>dataforge\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\hashes\sha3.hpp">
+      <Filter>dataforge\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\hashes\streebog.hpp">
+      <Filter>dataforge\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\hashes\tiger.hpp">
+      <Filter>dataforge\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\hashes\whirlpool.hpp">
+      <Filter>dataforge\hashes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\unicode\icu.hpp">
+      <Filter>dataforge\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dataforge\unicode\utf.hpp">
+      <Filter>dataforge\unicode</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

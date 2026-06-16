@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="test">
+      <UniqueIdentifier>{89df283c-38b7-4f28-8e64-c4811d4c2db0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools">
+      <UniqueIdentifier>{3a50251d-7b8e-4001-9393-8f51de94c967}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="examples">
+      <UniqueIdentifier>{01c66899-443b-427d-b707-310904c70278}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\tests\test_baseN.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_basic.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_checksums.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_ciphers.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_hashes.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\test_utf.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tests\tests.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tools\grapheme_breaker_tbl_generator.cpp">
+      <Filter>tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\examples\aes.cpp">
+      <Filter>examples</Filter>
+    </ClCompile>
+    <ClCompile Include="..\examples\base64.cpp">
+      <Filter>examples</Filter>
+    </ClCompile>
+    <ClCompile Include="..\examples\crc.cpp">
+      <Filter>examples</Filter>
+    </ClCompile>
+    <ClCompile Include="..\examples\md5.cpp">
+      <Filter>examples</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\tests\test_common.hpp">
+      <Filter>test</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\CMakeLists.txt" />
+  </ItemGroup>
+</Project>

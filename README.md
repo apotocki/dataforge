@@ -137,131 +137,107 @@ However, the test suite depends on external libraries (**zlib, icu, bzip2, lz4, 
 
 **No global vcpkg integration (`vcpkg integrate install`) is required** — everything is local to the repository.
 
-## Hardware Acceleration Flags
+## Hardware Acceleration
 
 The **SHA-1** and **SHA-2** families support compile-time selectable
 hardware-accelerated block processing. All variants always have a portable scalar
 fallback, so acceleration never changes results — only throughput.
 
-Configuration is controlled by these macros:
+### Acceleration profile
 
-- `DATAFORGE_ACCEL_AUTODETECT` (default `1`)
-  - `1`: pick the fastest backend supported by the **running CPU** (detected via
-    CPUID / `getauxval`) the first time a block is processed.
-  - `0`: disable auto-detection (use scalar unless a backend is forced).
-- `DATAFORGE_ACCEL_FORCE` (default `-1`)
-  - `-1`: use the auto-detection result.
-  - `0`: force the scalar implementation.
-  - `1`: force the x86 backend (no run-time probing — the target CPU must support it).
-  - `2`: force the ARM SHA backend.
-- `DATAFORGE_ACCEL_X86_SHA256_USE_AVX512` (default `0`)
-  - `0`: SHA-224/SHA-256 use **SHA-NI** when available (AVX-512 is **not** used).
-  - `1`: opt in to the x86 **AVX-512** schedule for SHA-224/SHA-256 instead of
-    SHA-NI. SHA-NI is faster for a single block, so this is off by default and
-    only useful for specific workloads/parts.
+A single macro `DATAFORGE_ACCEL_PROFILE` selects the ISA tier for **all**
+accelerated algorithms. Set it via `-DDATAFORGE_ACCEL_PROFILE=<value>`:
+
+| Value | Name | Description |
+|------:|------|-------------|
+| `-1` | `AUTO` *(default)* | Runtime CPU detection — picks the best backend at first use via CPUID / `getauxval`, cached for the lifetime of the process. |
+| `0` | `SCALAR` | Pure C++ — no ISA intrinsics. Compiles and runs anywhere. |
+| `1` | `X86_SHA_NI` | x86 forced: SHA-NI + SSE4.1 for SHA-1/224/256; SSE4.1 for SHA-512 family. No runtime probing — CPU **must** support these. |
+| `2` | `X86_AVX512` | x86 forced: SHA-NI for SHA-1/224/256 + AVX-512 message schedule for **all** SHA-2 variants including SHA-224/256. CPU **must** support AVX-512F/VL. |
+| `3` | `ARM_NEON` | AArch64 forced: NEON-vectorised SHA-512 message schedule; SHA-1/224/256 use scalar. Runs on **any** AArch64 CPU. |
+| `4` | `ARM_CRYPTO` | AArch64 forced: SHA2 crypto extensions for SHA-1/224/256; SHA-512 hardware extension (with NEON fallback). CPU **must** support ARMv8+crypto. |
+
+> **Note:** "Forced" profiles (`1`–`4`) call intrinsics directly without any
+> runtime CPU check. Running a forced binary on a CPU that lacks the required ISA
+> will cause an illegal-instruction signal. A profile targeting the wrong
+> architecture (e.g. `X86_SHA_NI` on ARM) is silently downgraded to `SCALAR`.
 
 ### Backends
 
 #### SHA-1
 
 - **x86 SHA-NI** — Intel SHA Extensions (`_mm_sha1rnds4` / `_mm_sha1nexte` /
-  `_mm_sha1msg1` / `_mm_sha1msg2`). Fastest single-block path for SHA-1; requires
-  an x86 target.
+  `_mm_sha1msg1` / `_mm_sha1msg2`). Fastest single-block path for SHA-1.
+  Used by `X86_SHA_NI`, `X86_AVX512`, and `AUTO` (when CPUID detects SHA).
 - **ARM SHA1** — AArch64 crypto extensions (`vsha1cq` / `vsha1pq` / `vsha1mq` /
-  `vsha1su0q` / `vsha1su1q`). Requires an AArch64 target. Runtime detection via
-  `HWCAP_SHA1` bit from `getauxval(AT_HWCAP)` on Linux.
+  `vsha1su0q` / `vsha1su1q`). Used by `ARM_CRYPTO` and `AUTO` (when
+  `HWCAP_SHA1` is set in `getauxval(AT_HWCAP)`).
 
-#### SHA-2
+#### SHA-2 (224 / 256)
 
 - **x86 SHA-NI** — Intel SHA Extensions (`_mm_sha256rnds2` / `msg1` / `msg2`).
-  Fastest single-block path for SHA-224/SHA-256; requires an x86 target.
-- **x86 AVX-512** — vectorized message schedule (AVX-512F + AVX-512VL, using the
-  `vprord` / `vprorq` vector rotate) with 8-way unrolled scalar compression rounds.
-  - For **SHA-224/SHA-256** this is **opt-in** (`DATAFORGE_ACCEL_X86_SHA256_USE_AVX512=1`).
-  - For **SHA-384 / SHA-512 / SHA-512-224 / SHA-512-256** there is no SHA-NI
-    equivalent, so the AVX-512 schedule is the default hardware path and is
-    preferred over scalar whenever the CPU supports AVX-512.
-  - Requires an x86 target.
-- **x86 SSE4.1** — same two-wide XMM message schedule as the AVX-512 path, but
-  64-bit lane rotations are decomposed into shift-or pairs instead of using the
-  AVX-512VL `vprorq` instruction. Compression rounds are also 8-way unrolled.
-  Selected automatically for the **SHA-384 / SHA-512 / SHA-512-224 / SHA-512-256**
-  family on x86-64 CPUs that lack AVX-512 (e.g. Intel Raptor Lake / Alder Lake
-  desktop with both P- and E-cores active). Requires only SSE4.1, present on
-  virtually all x86-64 hardware since ~2008.
-- **ARM SHA2** — AArch64 crypto extensions (`vsha256hq` / `vsha256su*`), for
-  SHA-224/SHA-256. Requires an AArch64 target.
-- **ARM SHA-512** — ARMv8.2-A SHA-512 extension (`vsha512hq` / `vsha512h2q` /
-  `vsha512su0q` / `vsha512su1q`), for SHA-384 / SHA-512 / SHA-512-224 / SHA-512-256.
-  Requires an AArch64 target with the SHA-512 feature (ARMv8.2-A+sha3).
-  Runtime detection via `HWCAP2_SHA512` bit from `getauxval(AT_HWCAP2)` on Linux.
-- **ARM NEON SHA-512** — vectorized message schedule using baseline NEON 64-bit
-  lane operations (shift-or pairs for 64-bit rotation), with 8-way unrolled scalar
-  compression rounds. Available on **all AArch64 CPUs** (Cortex-A53 and up, including
-  Rock64/RK3328). Selected automatically when the SHA-512 extension is absent.
+  Fastest single-block path. Used by `X86_SHA_NI`, `X86_AVX512`, and `AUTO`.
+- **x86 AVX-512** — vectorised message schedule (AVX-512F + AVX-512VL, `vprord`)
+  for SHA-224/256. Used by `X86_AVX512` only (SHA-NI is faster per block, so it
+  is never selected in `AUTO` mode for this family).
+- **ARM SHA2** — AArch64 crypto extensions (`vsha256hq` / `vsha256su*`).
+  Used by `ARM_CRYPTO` and `AUTO` (when `HWCAP_SHA2` is present).
+
+#### SHA-2 (384 / 512 / 512-224 / 512-256)
+
+- **x86 AVX-512** — vectorised message schedule using `vprorq` (64-bit lane
+  rotate), 8-way unrolled compression. Used by `X86_AVX512` and `AUTO` (when
+  AVX-512F/VL is available and the OS has enabled the register state via `XCR0`).
+- **x86 SSE4.1** — same two-wide XMM schedule but 64-bit rotations decomposed
+  into shift-or pairs. Used by `X86_SHA_NI` and `AUTO` (when AVX-512 is absent).
+  Present on virtually all x86-64 hardware since ~2008.
+- **ARM SHA-512** — ARMv8.2-A extension (`vsha512hq` / `vsha512h2q` /
+  `vsha512su0q` / `vsha512su1q`). Used by `ARM_CRYPTO` and `AUTO` (when
+  `HWCAP2_SHA512` is set in `getauxval(AT_HWCAP2)`).
+- **ARM NEON** — vectorised message schedule using baseline NEON 64-bit lane
+  operations (shift-or pairs). Available on **all AArch64** CPUs (Cortex-A53
+  and later). Used by `ARM_NEON`, `ARM_CRYPTO` (as fallback when SHA-512
+  extension is absent), and `AUTO` (when SHA-512 extension is absent).
 
 On GCC/Clang the intrinsics for each backend are enabled per-function via
 `__attribute__((target(...)))`, so no global `-msha` / `-mavx512*` /
-`-march=armv8-a+sha2` / `-march=armv8.2-a+sha3` flags are needed to *build* them;
-on MSVC they are always available. The architecture (x86 vs ARM) is the only
-compile-time requirement.
-AVX-512 selection also verifies, at run time, that the OS has enabled the AVX-512
-register state (via `XCR0`), not just that the CPUID feature bits are present.
+`-march=armv8-a+sha2` / `-march=armv8.2-a+sha3` flags are needed to *build*
+them; on MSVC they are always available.
 
-### How a backend is chosen
+### How `AUTO` chooses a backend
 
-- **Auto-detect (`AUTODETECT=1`, `FORCE=-1`)**
-  - SHA-1 on x86: **SHA-NI** if present, else **scalar**.
-  - SHA-1 on ARM: **SHA1** crypto extension if present (via `HWCAP_SHA1`), else **scalar**.
-  - SHA-224/SHA-256 on x86: **SHA-NI** if present, else **scalar** (or, when
-    `DATAFORGE_ACCEL_X86_SHA256_USE_AVX512=1`: **AVX-512** if present, then SHA-NI,
-    then scalar).
-  - SHA-512 family on x86: **AVX-512** if present, else **SSE4.1** if present, else **scalar**.
-  - SHA-224/SHA-256 on ARM: **SHA2** crypto extension if present, else **scalar**.
-  - SHA-512 family on ARM: **SHA-512** extension if present (via `HWCAP2_SHA512`), else **NEON** (all AArch64), else **scalar**.
-- **Forced x86 (`FORCE=1`)** — the intrinsic code is emitted **directly** with no
-  run-time CPU probing; the caller guarantees the CPU supports it. SHA-1 and
-  SHA-224/SHA-256 emit SHA-NI (or AVX-512 for SHA-256 if
-  `DATAFORGE_ACCEL_X86_SHA256_USE_AVX512=1` **and** the build targets AVX-512).
-  The SHA-512 family emits AVX-512 when the build targets it (`-mavx512f -mavx512vl`
-  or `/arch:AVX512`, i.e. `__AVX512F__ && __AVX512VL__`), otherwise **SSE4.1** if
-  the build defines `__SSE4_1__` (e.g. `-msse4.1`), else scalar.
-  A forced-x86 build on a non-x86 target safely degrades to scalar.
-- **Forced ARM (`FORCE=2`)** — SHA-1 and SHA-224/SHA-256 use AArch64 crypto
-  extension intrinsics directly with no runtime probing. The SHA-512 family uses
-  the SHA-512 extension if the build target supports it, otherwise NEON, otherwise
-  scalar. A forced-ARM build on a non-ARM target safely degrades to scalar.
-- **Forced scalar / acceleration disabled** — the portable scalar implementation
-  is always used.
+| Algorithm | x86 | AArch64 |
+|-----------|-----|---------|
+| SHA-1 | SHA-NI → scalar | SHA1 crypto ext → scalar |
+| SHA-224/256 | SHA-NI → scalar | SHA2 crypto ext → scalar |
+| SHA-384/512/… | AVX-512 → SSE4.1 → scalar | SHA-512 ext → NEON → scalar |
 
-### CMake configuration examples
+### CMake / compiler examples
 
 ```bash
-cmake -S . -B build -DDATAFORGE_ACCEL_AUTODETECT=ON  -DDATAFORGE_ACCEL_FORCE=-1   # auto (default)
-cmake -S . -B build -DDATAFORGE_ACCEL_AUTODETECT=OFF -DDATAFORGE_ACCEL_FORCE=1    # force x86 (SHA-NI)
-cmake -S . -B build -DDATAFORGE_ACCEL_AUTODETECT=OFF -DDATAFORGE_ACCEL_FORCE=2    # force ARM (SHA-1 + SHA2 crypto ext)
-cmake -S . -B build -DDATAFORGE_ACCEL_AUTODETECT=OFF -DDATAFORGE_ACCEL_FORCE=0    # force scalar
+# Default (auto-detect)
+cmake -S . -B build
+
+# Force scalar everywhere
+cmake -S . -B build -DDATAFORGE_ACCEL_PROFILE=0
+
+# Force x86 SHA-NI + SSE4.1  (profile 1)
+cmake -S . -B build -DDATAFORGE_ACCEL_PROFILE=1
+
+# Force x86 AVX-512 for all SHA-2 including SHA-224/256  (profile 2)
+cmake -S . -B build -DDATAFORGE_ACCEL_PROFILE=2
+
+# Force AArch64 NEON for SHA-512, scalar for SHA-1/256  (profile 3)
+cmake -S . -B build -DDATAFORGE_ACCEL_PROFILE=3
+
+# Force AArch64 crypto extensions (SHA2 + SHA-512)  (profile 4)
+cmake -S . -B build -DDATAFORGE_ACCEL_PROFILE=4
 ```
 
-Opt in to AVX-512 for SHA-224/SHA-256 (otherwise SHA-NI is used):
+Without CMake (direct compiler define):
 
 ```bash
-cmake -S . -B build -DDATAFORGE_ACCEL_X86_SHA256_USE_AVX512=ON
-```
-
-The SHA-512 family uses AVX-512 automatically under auto-detect. To force the
-SHA-512 AVX-512 path with no run-time probing, force the x86 backend and build
-with AVX-512 enabled, e.g. (GCC/Clang):
-
-```bash
-cmake -S . -B build -DDATAFORGE_ACCEL_AUTODETECT=OFF -DDATAFORGE_ACCEL_FORCE=1 \
-      -DCMAKE_CXX_FLAGS="-mavx512f -mavx512vl"
-```
-
-### Direct compiler defines (without CMake options)
-
-```bash
--DDATAFORGE_ACCEL_AUTODETECT=1 -DDATAFORGE_ACCEL_FORCE=-1
+g++ ... -DDATAFORGE_ACCEL_PROFILE=2
 ```
 
 ## License

@@ -4,9 +4,17 @@ project(dataforge_tests LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(DATAFORGE_ACCEL_AUTODETECT "Enable SHA-2 acceleration auto-detection" ON)
-set(DATAFORGE_ACCEL_FORCE "-1" CACHE STRING "SHA-2 acceleration override: -1 auto, 0 none, 1 x86 SHA, 2 ARM SHA2")
-option(DATAFORGE_ACCEL_X86_SHA256_USE_AVX512 "Use the x86 AVX-512 schedule for SHA-224/256 instead of SHA-NI" OFF)
+# ---------------------------------------------------------------------------
+# Profile constants — mirror DATAFORGE_PROFILE_* values from config.hpp.
+# Use these names everywhere below so the numeric values are never written
+# directly in this file.
+# ---------------------------------------------------------------------------
+set(PROFILE_AUTO       -1)
+set(PROFILE_SCALAR      0)
+set(PROFILE_X86_SHA_NI  1)
+set(PROFILE_X86_AVX512  2)
+set(PROFILE_ARM_NEON    3)
+set(PROFILE_ARM_CRYPTO  4)
 
 # Enable folders in IDEs
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -86,23 +94,142 @@ else()
     include_directories(${LZ4_INCLUDE_DIR} ${LIBLZMA_INCLUDE_DIR})
 endif()
 
-# Define the test executable
-add_executable(dataforge_tests ${DATAFORGE_TEST_SOURCES})
-target_include_directories(dataforge_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+# ---------------------------------------------------------------------------
+# Helper: build one test binary for a given acceleration profile.
+# PROFILE_NAME  — used as a suffix in the target/test name.
+# PROFILE_VALUE — the DATAFORGE_PROFILE_* constant to pass to the compiler.
+# ---------------------------------------------------------------------------
+function(add_accel_test_target PROFILE_NAME PROFILE_VALUE)
+    set(TARGET dataforge_tests_${PROFILE_NAME})
+    add_executable(${TARGET} ${DATAFORGE_TEST_SOURCES})
+    target_include_directories(${TARGET} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+    target_compile_definitions(${TARGET} PRIVATE
+        DATAFORGE_ACCEL_PROFILE=${PROFILE_VALUE})
+    target_link_libraries(${TARGET} PRIVATE ${DEPS})
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+        target_compile_options(${TARGET} PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+    add_test(NAME ${TARGET} COMMAND ${TARGET})
+endfunction()
 
-target_compile_definitions(dataforge_tests PRIVATE
-  DATAFORGE_ACCEL_AUTODETECT=$<IF:$<BOOL:${DATAFORGE_ACCEL_AUTODETECT}>,1,0>
-  DATAFORGE_ACCEL_FORCE=${DATAFORGE_ACCEL_FORCE}
-  DATAFORGE_ACCEL_X86_SHA256_USE_AVX512=$<IF:$<BOOL:${DATAFORGE_ACCEL_X86_SHA256_USE_AVX512}>,1,0>
-)
+# ---------------------------------------------------------------------------
+# Runtime CPU capability probes (executed at CMake configure time).
+# Each probe program returns 0 if the CPU feature is present, 1 otherwise.
+# Results are cached; re-run cmake to re-probe (e.g. after changing machines).
+# ---------------------------------------------------------------------------
+include(CheckCXXSourceRuns)
 
-# Nice warnings for GCC/Clang
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-  target_compile_options(dataforge_tests PRIVATE -Wall -Wextra -Wpedantic)
+# Probe: x86 SHA-NI (CPUID leaf 7, EBX bit 29)
+set(PROBE_X86_SHA_NI [=[
+    #if defined(_MSC_VER)
+    #  include <intrin.h>
+    #else
+    #  include <cpuid.h>
+    #endif
+    int main() {
+    #if defined(_MSC_VER)
+        int info[4]; __cpuidex(info, 7, 0);
+        return ((info[1] >> 29) & 1) ? 0 : 1;
+    #else
+        unsigned a, b, c, d;
+        if (!__get_cpuid_count(7, 0, &a, &b, &c, &d)) return 1;
+        return ((b >> 29) & 1) ? 0 : 1;
+    #endif
+    }
+]=])
+
+# Probe: x86 AVX-512F + AVX-512VL + OS register-state support (XCR0 bits)
+set(PROBE_X86_AVX512 [=[
+    #if defined(_MSC_VER)
+    #  include <intrin.h>
+    #  include <immintrin.h>
+    #else
+    #  include <cpuid.h>
+    #endif
+    int main() {
+    #if defined(_MSC_VER)
+        int info[4]; __cpuidex(info, 7, 0);
+        if (!((info[1] >> 16) & 1) || !((info[1] >> 31) & 1)) return 1;
+        unsigned long long xcr0 = _xgetbv(0);
+    #else
+        unsigned a, b, c, d;
+        if (!__get_cpuid_count(7, 0, &a, &b, &c, &d)) return 1;
+        if (!((b >> 16) & 1) || !((b >> 31) & 1)) return 1;
+        unsigned eax2, edx2;
+        __asm__("xgetbv" : "=a"(eax2), "=d"(edx2) : "c"(0u));
+        unsigned long long xcr0 = ((unsigned long long)edx2 << 32) | eax2;
+    #endif
+        // Bits 1-2: SSE, bits 5-7: AVX-512 opmask/ZMM-hi/ZMM-hi16
+        return ((xcr0 & 0xE6u) == 0xE6u) ? 0 : 1;
+    }
+]=])
+
+# Probe: AArch64 SHA2 crypto extension
+set(PROBE_ARM_CRYPTO [=[
+    #if defined(__APPLE__)
+    #  include <sys/sysctl.h>
+    int main() {
+        int v = 0; size_t sz = sizeof(v);
+        sysctlbyname("hw.optional.arm.FEAT_SHA256", &v, &sz, nullptr, 0);
+        return v ? 0 : 1;
+    }
+    #elif defined(__linux__)
+    #  include <sys/auxv.h>
+    #  include <asm/hwcap.h>
+    int main() { return (getauxval(AT_HWCAP) & HWCAP_SHA2) ? 0 : 1; }
+    #else
+    int main() { return 1; }
+    #endif
+]=])
+
+# ---------------------------------------------------------------------------
+# Register test targets — always + per-architecture probed variants.
+# ---------------------------------------------------------------------------
+message(STATUS "DataForge: configuring acceleration test targets")
+
+# AUTO and SCALAR are always built and always run.
+add_accel_test_target(auto   ${PROFILE_AUTO})
+add_accel_test_target(scalar ${PROFILE_SCALAR})
+message(STATUS "  [enabled] auto   (DATAFORGE_ACCEL_PROFILE=${PROFILE_AUTO})")
+message(STATUS "  [enabled] scalar (DATAFORGE_ACCEL_PROFILE=${PROFILE_SCALAR})")
+
+# x86 profiles
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "AMD64|x86_64|i[3-6]86|X86")
+
+    check_cxx_source_runs("${PROBE_X86_SHA_NI}"  DATAFORGE_CPU_HAS_X86_SHA_NI)
+    check_cxx_source_runs("${PROBE_X86_AVX512}"  DATAFORGE_CPU_HAS_X86_AVX512)
+
+    if(DATAFORGE_CPU_HAS_X86_SHA_NI)
+        add_accel_test_target(x86_sha_ni ${PROFILE_X86_SHA_NI})
+        message(STATUS "  [enabled] x86_sha_ni (DATAFORGE_ACCEL_PROFILE=${PROFILE_X86_SHA_NI})")
+    else()
+        message(STATUS "  [skipped] x86_sha_ni — SHA-NI not available on this CPU")
+    endif()
+
+    if(DATAFORGE_CPU_HAS_X86_AVX512)
+        add_accel_test_target(x86_avx512 ${PROFILE_X86_AVX512})
+        message(STATUS "  [enabled] x86_avx512 (DATAFORGE_ACCEL_PROFILE=${PROFILE_X86_AVX512})")
+    else()
+        message(STATUS "  [skipped] x86_avx512 — AVX-512 not available on this CPU")
+    endif()
+
 endif()
 
-# Link dependencies
-target_link_libraries(dataforge_tests PRIVATE ${DEPS})
+# AArch64 profiles
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64|AARCH64")
 
-# Add the test to CTest
-add_test(NAME dataforge_tests COMMAND dataforge_tests)
+    # ARM_NEON: NEON is mandatory on all AArch64 — always build.
+    add_accel_test_target(arm_neon ${PROFILE_ARM_NEON})
+    message(STATUS "  [enabled] arm_neon (DATAFORGE_ACCEL_PROFILE=${PROFILE_ARM_NEON})")
+
+    check_cxx_source_runs("${PROBE_ARM_CRYPTO}"  DATAFORGE_CPU_HAS_ARM_CRYPTO)
+
+    if(DATAFORGE_CPU_HAS_ARM_CRYPTO)
+        add_accel_test_target(arm_crypto ${PROFILE_ARM_CRYPTO})
+        message(STATUS "  [enabled] arm_crypto (DATAFORGE_ACCEL_PROFILE=${PROFILE_ARM_CRYPTO})")
+    else()
+        message(STATUS "  [skipped] arm_crypto — SHA2 crypto extensions not available on this CPU")
+    endif()
+
+endif()
