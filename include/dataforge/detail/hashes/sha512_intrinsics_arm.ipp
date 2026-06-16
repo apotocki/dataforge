@@ -49,14 +49,20 @@ inline bool sha512_runtime_has_sha512_accel()
 // Packed as four uint64x2_t: ab={A,B}, cd={C,D}, ef={E,F}, gh={G,H}.
 //
 // Message schedule: eight uint64x2_t w[0..7] cover two words each (16 total
-// loaded per block). Slots are reused in-place with a rolling window:
-// for pair i>=8, w[i%8] is updated to hold W[2i]..W[2i+1] before use.
+// loaded per block). Each slot w[k] stores {W[2k], W[2k+1]} in {D[0], D[1]}.
+// Slots are reused in-place with a rolling window: for pair i>=8, w[i%8] is
+// updated to hold {W[2i], W[2i+1]} before use.
 //
 // vsha512su0q_u64(w[s], w[(s+1)&7]):
-//   result = { w[s][0]+sigma0(w[s][1]), w[s][1]+sigma0(w[(s+1)&7][0]) }
+//   result[0] = w[s][0] + sigma0(w[s][1])
+//   result[1] = w[s][1] + sigma0(w[(s+1)&7][0])
 //
-// vsha512su1q_u64(su0, w_tm2_tm1, vextq_u64(w_tm4, w_tm3, 1)):
-//   result[k] = su0[k] + sigma1(w_tm2_tm1[k]) + w_tm7_tm6[k]
+// vsha512su1q_u64(su0, Vn, Vm) — note the CROSS-LANE sigma1:
+//   result[0] = su0[0] + sigma1(Vn[1]) + Vm[0]
+//   result[1] = su0[1] + sigma1(Vn[0]) + Vm[1]
+// Therefore the "W[t-2], W[t-1]" pair must be passed as {W[t-1], W[t-2]}
+// (lanes swapped) so sigma1 reaches the correct word for each result lane.
+// vextq_u64(w[(s+7)&7], w[(s+7)&7], 1) swaps D[0]/D[1] of that slot.
 //
 // Two compression rounds per vsha512hq / vsha512h2q call:
 //   t1 = vsha512hq_u64(ef, gh, wk)
@@ -95,7 +101,7 @@ inline void process_blocks_sha512_arm(uint64_t(&state)[8], const void* msg, size
             const int s = i & 7;
             w[s] = vsha512su1q_u64(
                 vsha512su0q_u64(w[s], w[(s + 1) & 7]),
-                w[(s + 7) & 7],
+                vextq_u64(w[(s + 7) & 7], w[(s + 7) & 7], 1),
                 vextq_u64(w[(s + 4) & 7], w[(s + 5) & 7], 1)
             );
             uint64x2_t wk = vaddq_u64(w[s], vld1q_u64(K + 2*i));
