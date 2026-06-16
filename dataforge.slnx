@@ -3,5 +3,6 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="msvc/dataforge_tests.vcxproj" Id="042f713a-c9f9-4cc8-ad49-10d3532d1917" />
+  <Project Path="accel/dataforge.vcxproj" Id="ff95034f-2476-4522-b210-176d83fd1bf3" />
+  <Project Path="tests/dataforge_tests.vcxproj" Id="042f713a-c9f9-4cc8-ad49-10d3532d1917" />
 </Solution>

@@ -57,7 +57,11 @@ inline void sha1_impl::process_blocks(const void* msg, size_t block_count)
 #elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_X86
     process_blocks_sha1_x86(H, msg, block_count);
 #elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_ARM
+#   if DATAFORGE_ACCEL_ARM_USE_CRYPTO && DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA1
     process_blocks_sha1_arm(H, msg, block_count);
+#   else
+    process_blocks_scalar(H, msg, block_count);
+#   endif
 #else // DATAFORGE_ACCEL_NONE
     process_blocks_scalar(H, msg, block_count);
 #endif

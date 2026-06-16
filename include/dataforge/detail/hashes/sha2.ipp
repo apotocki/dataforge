@@ -245,14 +245,14 @@ inline void sha2_impl<Type>::process_blocks(const void* msg, size_t block_count)
     if constexpr (Type == sha2_type::sha224 || Type == sha2_type::sha256)
     {
         // SHA-224/SHA-256 (32-bit words). SHA-NI is the default hardware path;
-        // the AVX-512 schedule is used only when explicitly opted in via
-        // DATAFORGE_ACCEL_X86_SHA256_USE_AVX512 (SHA-NI is faster per block).
+        // the AVX-512 schedule is used only with DATAFORGE_PROFILE_X86_AVX512
+        // (SHA-NI is faster per block, so AVX-512 here is never auto-selected).
 #if DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_AUTODETECT_MODE
         // Probe the running CPU once and cache the best available block function.
         using sha256_block_fn_t = void(*)(uint32_t(&)[8], const void*, size_t);
         static const sha256_block_fn_t process_blocks_impl = []() -> sha256_block_fn_t {
 #   if DATAFORGE_TARGET_X86 && DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA
-#       if DATAFORGE_ACCEL_X86_SHA256_USE_AVX512
+#       if DATAFORGE_ACCEL_X86_USE_AVX512
             if (x86_runtime_has_avx512())
                 return &process_blocks_sha256_x86_avx512;
 #       endif
@@ -275,15 +275,19 @@ inline void sha2_impl<Type>::process_blocks(const void* msg, size_t block_count)
         // only emit code the *compilation target* can encode — that compile-time
         // guarantee is what DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA reflects, and a
         // forced-x86 build on a non-x86 target is downgraded to scalar in sha2.hpp.
-        // AVX-512 is used only when opted in AND the build targets AVX-512.
-#   if DATAFORGE_ACCEL_X86_SHA256_USE_AVX512 && defined(__AVX512F__) && defined(__AVX512VL__)
+        // AVX-512 is used only with DATAFORGE_PROFILE_X86_AVX512 AND the build targets AVX-512.
+#   if DATAFORGE_ACCEL_X86_USE_AVX512 && defined(__AVX512F__) && defined(__AVX512VL__)
         process_blocks_sha256_x86_avx512(H, msg, block_count);
 #   else
         process_blocks_sha256_x86(H, msg, block_count);
 #   endif
 
 #elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_ARM
+#   if DATAFORGE_ACCEL_ARM_USE_CRYPTO && DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA2
         process_blocks_sha256_arm(H, msg, block_count);
+#   else
+        process_blocks_scalar(H, msg, block_count);
+#   endif
 
 #else // DATAFORGE_ACCEL_NONE
         process_blocks_scalar(H, msg, block_count);
@@ -335,7 +339,7 @@ inline void sha2_impl<Type>::process_blocks(const void* msg, size_t block_count)
 #endif
 
 #elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_ARM
-#   if DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA512
+#   if DATAFORGE_ACCEL_ARM_USE_CRYPTO && DATAFORGE_ACCEL_CAN_COMPILE_ARM_SHA512
         process_blocks_sha512_arm(H, msg, block_count);
 #   elif DATAFORGE_ACCEL_CAN_COMPILE_ARM_NEON_SHA512
         process_blocks_sha512_arm_neon(H, msg, block_count);
