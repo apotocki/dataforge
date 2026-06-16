@@ -17,7 +17,7 @@
 
 #include <arm_neon.h>
 
-#if DATAFORGE_ACCEL_AUTODETECT && defined(__linux__) && defined(__aarch64__)
+#if DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_AUTODETECT_MODE && defined(__linux__) && defined(__aarch64__)
 #include <sys/auxv.h>
 #include <asm/hwcap.h>
 #endif
