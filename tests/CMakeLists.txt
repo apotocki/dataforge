@@ -62,7 +62,7 @@ else()
     # default prefix), so CMake's FindICU won't see it unless we point it
     # at the cellar. Ask brew for the actual prefix and set ICU_ROOT so that
     # FindICU picks up the right headers and libraries.
-    if(APPLE AND NOT DEFINED ICU_ROOT)
+    if(APPLE)
         find_program(BREW brew)
         if(BREW)
             execute_process(
@@ -72,8 +72,13 @@ else()
                 ERROR_QUIET
             )
             if(_brew_icu_prefix)
-                set(ICU_ROOT "${_brew_icu_prefix}")
-                message(STATUS "Homebrew ICU root: ${ICU_ROOT}")
+                message(STATUS "Homebrew ICU root: ${_brew_icu_prefix}")
+                # Prepend to CMAKE_PREFIX_PATH so find_package searches here first.
+                list(PREPEND CMAKE_PREFIX_PATH "${_brew_icu_prefix}")
+                # Explicitly override the cached FindICU internal variables so that
+                # a previous run that picked up Xcode SDK ICU does not win.
+                set(ICU_INCLUDE_DIR "${_brew_icu_prefix}/include"
+                    CACHE PATH "ICU include directory (Homebrew)" FORCE)
             endif()
         endif()
     endif()
