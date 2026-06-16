@@ -36,7 +36,7 @@ public:
     template <typename ConsumerT>
     void push(char32_t uchar, ConsumerT cons)
     {
-        if (uchar < UTF16_SUR_HIGH_START || (uchar > UTF16_SUR_LOW_END && uchar <= 0xffff)) {
+        if (uchar < UTF16_SUR_HIGH_START32 || (uchar > UTF16_SUR_LOW_END32 && uchar <= 0xffff)) {
             cons(static_cast<char16_t>(uchar));
         } else {
             if (uchar >= 0x00010000UL && uchar <= 0x0010ffff) {
