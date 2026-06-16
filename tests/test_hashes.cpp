@@ -27,6 +27,8 @@ using namespace std::literals::string_view_literals;
 
 namespace dataforge {
 
+#if DATAFORGE_TEST_FULL_SUITE
+
 void md2_test()
 {
     DATAFORGE_TEST(int8 | md2 | base16l, ""sv, "8350e5a3e24c153df2275c9f80692773"sv);
@@ -129,6 +131,9 @@ void tiger_test()
     DATAFORGE_TEST(int8 | tiger2_192 | base16u, std::vector<char>(78), "92FA6750D57C08340C98743B2E0BAE08FA3FFEDF93686301"sv);
 }
 
+#endif // DATAFORGE_TEST_FULL_SUITE
+#if DATAFORGE_TEST_FULL_SUITE || DATAFORGE_TEST_HAS_SHA_ACCEL
+
 void sha1_test()
 {
     DATAFORGE_TEST(int8 | sha1 | base16l, "The quick brown fox jumps over the lazy dog"sv, "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12"sv);
@@ -147,6 +152,9 @@ void sha2_test()
     DATAFORGE_TEST(int8 | sha512_224 | base16u, example0, "944CD2847FB54558D4775DB0485A50003111C8E5DAA63FE722C6AA37"sv);
     DATAFORGE_TEST(int8 | sha512_256 | base16u, example0, "DD9D67B371519C339ED8DBD25AF90E976A1EEEFD4AD3D889005E532FC5BEF04D"sv);
 }
+
+#endif // DATAFORGE_TEST_FULL_SUITE || DATAFORGE_TEST_HAS_SHA_ACCEL
+#if DATAFORGE_TEST_FULL_SUITE
 
 void sha3_test()
 {
@@ -260,10 +268,6 @@ void whirlpool_test()
 
 void blake_test()
 {
-#if 0
-    std::vector<char> x64(64, 'x');
-    DATAFORGE_TEST(int8 | blake224 | base16u, x64, "A745F448C389B1E969A3421A6ADF6403EFBA198DC9F104E9EB1C98FD"sv);
-#else
     DATAFORGE_TEST(int8 | blake224 | base16l, ""sv, "7dc5313b1c04512a174bd6503b89607aecbee0903d40a8a569c94eed"sv);
     DATAFORGE_TEST(int8 | blake256 | base16l, ""sv, "716f6e863f744b9ac22c97ec7b76ea5f5908bc5b2f67c61510bfc4751384ea7a"sv);
     DATAFORGE_TEST(int8 | blake384 | base16l, ""sv, "c6cbd89c926ab525c242e6621f2f5fa73aa4afe3d9e24aed727faaadd6af38b620bdb623dd2b4788b1c8086984af8706"sv);
@@ -331,7 +335,8 @@ void blake_test()
     DATAFORGE_TEST(int8 | blake2s224 | base16l, (std::vector{ x63, x65 }), "51e00eff110c3531414e54cd204aa63af7bad3509b41401242d4d02a"sv);
 
     DATAFORGE_TEST(int8 | blake2s224_t("1"_bs, nullptr) | base16l, x64, "bbd56c7c818bd42519f86a09de65f82435bba62c7afeb83c48d48cb4"sv);
-#endif
 }
+
+#endif // DATAFORGE_TEST_FULL_SUITE
 
 }

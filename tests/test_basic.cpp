@@ -19,6 +19,8 @@
 #include "dataforge/base_xx/base16.hpp"
 #include "dataforge/base_xx/base64.hpp"
 
+#if DATAFORGE_TEST_FULL_SUITE
+
 namespace dataforge {
 
 void group_test()
@@ -145,3 +147,5 @@ void lz4_test()
 }
 
 }
+
+#endif // DATAFORGE_TEST_FULL_SUITE

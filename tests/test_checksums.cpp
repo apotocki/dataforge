@@ -12,6 +12,8 @@
 #include "dataforge/checksum/adler32.hpp"
 #include "dataforge/checksum/crc.hpp"
 
+#if DATAFORGE_TEST_FULL_SUITE
+
 namespace dataforge {
 
 void bsd_checksum_test()
@@ -82,3 +84,5 @@ void crc_test()
 }
 
 }
+
+#endif // DATAFORGE_TEST_FULL_SUITE

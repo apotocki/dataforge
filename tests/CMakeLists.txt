@@ -14,7 +14,8 @@ set(PROFILE_SCALAR      0)
 set(PROFILE_X86_SHA_NI  1)
 set(PROFILE_X86_AVX512  2)
 set(PROFILE_ARM_NEON    3)
-set(PROFILE_ARM_CRYPTO  4)
+set(PROFILE_ARM_SHA     4)
+set(PROFILE_ARM_CRYPTO  5)
 
 # Enable folders in IDEs
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -197,8 +198,9 @@ set(PROBE_X86_AVX512 [=[
     }
 ]=])
 
-# Probe: AArch64 SHA2 crypto extension
-set(PROBE_ARM_CRYPTO [=[
+# Probe: AArch64 SHA2 crypto extension (SHA-1 / SHA-224 / SHA-256)
+# Required by ARM_SHA and ARM_CRYPTO profiles.
+set(PROBE_ARM_SHA [=[
     #if defined(__APPLE__)
     #  include <sys/sysctl.h>
     int main() {
@@ -210,6 +212,28 @@ set(PROBE_ARM_CRYPTO [=[
     #  include <sys/auxv.h>
     #  include <asm/hwcap.h>
     int main() { return (getauxval(AT_HWCAP) & HWCAP_SHA2) ? 0 : 1; }
+    #else
+    int main() { return 1; }
+    #endif
+]=])
+
+# Probe: AArch64 SHA-512 hardware extension (ARMv8.2-A, SHA-384 / SHA-512).
+# Required by ARM_CRYPTO profile in addition to SHA2.
+set(PROBE_ARM_SHA512_EXT [=[
+    #if defined(__APPLE__)
+    #  include <sys/sysctl.h>
+    int main() {
+        int v = 0; size_t sz = sizeof(v);
+        sysctlbyname("hw.optional.arm.FEAT_SHA512", &v, &sz, nullptr, 0);
+        return v ? 0 : 1;
+    }
+    #elif defined(__linux__)
+    #  include <sys/auxv.h>
+    #  include <asm/hwcap.h>
+    #  ifndef HWCAP_SHA512
+    #    define HWCAP_SHA512 (1UL << 21)
+    #  endif
+    int main() { return (getauxval(AT_HWCAP) & HWCAP_SHA512) ? 0 : 1; }
     #else
     int main() { return 1; }
     #endif
@@ -255,13 +279,21 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64|AARCH64")
     add_accel_test_target(arm_neon ${PROFILE_ARM_NEON})
     message(STATUS "  [enabled] arm_neon (DATAFORGE_ACCEL_PROFILE=${PROFILE_ARM_NEON})")
 
-    check_cxx_source_runs("${PROBE_ARM_CRYPTO}"  DATAFORGE_CPU_HAS_ARM_CRYPTO)
+    check_cxx_source_runs("${PROBE_ARM_SHA}"        DATAFORGE_CPU_HAS_ARM_SHA)
+    check_cxx_source_runs("${PROBE_ARM_SHA512_EXT}" DATAFORGE_CPU_HAS_ARM_SHA512_EXT)
 
-    if(DATAFORGE_CPU_HAS_ARM_CRYPTO)
+    if(DATAFORGE_CPU_HAS_ARM_SHA)
+        add_accel_test_target(arm_sha ${PROFILE_ARM_SHA})
+        message(STATUS "  [enabled] arm_sha (DATAFORGE_ACCEL_PROFILE=${PROFILE_ARM_SHA})")
+    else()
+        message(STATUS "  [skipped] arm_sha — SHA2 crypto extension not available on this CPU")
+    endif()
+
+    if(DATAFORGE_CPU_HAS_ARM_SHA AND DATAFORGE_CPU_HAS_ARM_SHA512_EXT)
         add_accel_test_target(arm_crypto ${PROFILE_ARM_CRYPTO})
         message(STATUS "  [enabled] arm_crypto (DATAFORGE_ACCEL_PROFILE=${PROFILE_ARM_CRYPTO})")
     else()
-        message(STATUS "  [skipped] arm_crypto — SHA2 crypto extensions not available on this CPU")
+        message(STATUS "  [skipped] arm_crypto — SHA-512 extension (ARMv8.2-A) not available on this CPU")
     endif()
 
 endif()

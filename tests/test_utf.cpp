@@ -12,6 +12,8 @@
 #include "dataforge/base_xx/base64.hpp"
 #include "dataforge/basic/mapper.hpp"
 
+#if DATAFORGE_TEST_FULL_SUITE
+
 namespace dataforge {
 
 const char8_t utf8text[] = {
@@ -817,3 +819,5 @@ void icu_test()
 }
 
 }
+
+#endif // DATAFORGE_TEST_FULL_SUITE
