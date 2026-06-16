@@ -59,7 +59,7 @@ public:
             data <<= 6;
             data |= (c & 0x3f);
             if (!--num) {
-                if (data < UTF16_SUR_HIGH_START || data > UTF16_SUR_LOW_END) {
+                if (data < UTF16_SUR_HIGH_START32 || data > UTF16_SUR_LOW_END32) {
                     if (data <= 0xFFFF) {
                         //if (data != UTF16_BOM) {
                         cons(static_cast<char16_t>(data));
