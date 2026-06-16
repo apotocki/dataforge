@@ -9,10 +9,10 @@
 
 namespace dataforge {
 
-static constexpr char32_t UTF16_SUR_HIGH_START = 0xD800;
-static constexpr char32_t UTF16_SUR_HIGH_END = 0xDBFF;
-static constexpr char32_t UTF16_SUR_LOW_START = 0xDC00;
-static constexpr char32_t UTF16_SUR_LOW_END = 0xDFFF;
+static constexpr char16_t UTF16_SUR_HIGH_START = u'\xD800';
+static constexpr char16_t UTF16_SUR_HIGH_END   = u'\xDBFF';
+static constexpr char16_t UTF16_SUR_LOW_START  = u'\xDC00';
+static constexpr char16_t UTF16_SUR_LOW_END    = u'\xDFFF';
 
 static constexpr char32_t UTF16_SURROGATE_OFFSET = (0xD800 << 10) + 0xDC00 - 0x10000;
 static constexpr char32_t UTF16_LEAD_OFFSET = 0xD800 - (0x10000 >> 10);
