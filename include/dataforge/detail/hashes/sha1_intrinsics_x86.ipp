@@ -10,7 +10,7 @@
 
 #include <immintrin.h>
 
-#if DATAFORGE_ACCEL_AUTODETECT && defined(_MSC_VER)
+#if DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_AUTODETECT_MODE && defined(_MSC_VER)
 #include <intrin.h>
 #endif
 
