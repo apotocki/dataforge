@@ -27,15 +27,15 @@ namespace dataforge::sha2_detail {
 inline bool sha256_runtime_has_sha256_accel()
 {
 #if defined(__linux__) && (defined(__aarch64__) || defined(__arm__))
-#ifndef HWCAP_SHA2
-#define HWCAP_SHA2 (1UL << 3)
-#endif
-#ifndef AT_HWCAP
-#define AT_HWCAP 16
-#endif
+#  ifndef HWCAP_SHA2
+#    define HWCAP_SHA2 (1UL << 3)
+#  endif
+#  ifndef AT_HWCAP
+#    define AT_HWCAP 16
+#  endif
     return (getauxval(AT_HWCAP) & HWCAP_SHA2) != 0;
 #else
-    return true;
+    return true; // SHA-256 is part of ARMv8.0 Crypto; assume present on non-Linux AArch64.
 #endif
 }
 #endif

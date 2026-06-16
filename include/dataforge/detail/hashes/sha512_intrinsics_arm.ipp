@@ -17,9 +17,14 @@
 
 #include <arm_neon.h>
 
-#if DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_AUTODETECT_MODE && defined(__linux__) && defined(__aarch64__)
-#include <sys/auxv.h>
-#include <asm/hwcap.h>
+#if DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_AUTODETECT_MODE
+#  if defined(__linux__) && defined(__aarch64__)
+#    include <sys/auxv.h>
+#    include <asm/hwcap.h>
+#  elif defined(__APPLE__) && defined(__aarch64__)
+#    include <sys/types.h>
+#    include <sys/sysctl.h>
+#  endif
 #endif
 
 namespace dataforge::sha2_detail {
@@ -29,13 +34,17 @@ inline bool sha512_runtime_has_sha512_accel()
 {
 #if defined(__linux__) && defined(__aarch64__)
     // SHA-512 (ARMv8.2-A) is reported via AT_HWCAP bit 21, not AT_HWCAP2.
-#ifndef HWCAP_SHA512
-#define HWCAP_SHA512 (1UL << 21)
-#endif
-#ifndef AT_HWCAP
-#define AT_HWCAP 16
-#endif
+#  ifndef HWCAP_SHA512
+#    define HWCAP_SHA512 (1UL << 21)
+#  endif
+#  ifndef AT_HWCAP
+#    define AT_HWCAP 16
+#  endif
     return (getauxval(AT_HWCAP) & HWCAP_SHA512) != 0;
+#elif defined(__APPLE__) && defined(__aarch64__)
+    int val = 0;
+    size_t sz = sizeof(val);
+    return sysctlbyname("hw.optional.armv8_2_sha512", &val, &sz, nullptr, 0) == 0 && val != 0;
 #else
     return false;
 #endif
