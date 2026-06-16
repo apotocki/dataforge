@@ -58,6 +58,26 @@ if(DEFINED ENV{VCPKG_ROOT})
 else()
     message(STATUS "No vcpkg detected. Using system packages.")
 
+    # On macOS, Homebrew installs icu4c as keg-only (no symlinks into the
+    # default prefix), so CMake's FindICU won't see it unless we point it
+    # at the cellar. Ask brew for the actual prefix and set ICU_ROOT so that
+    # FindICU picks up the right headers and libraries.
+    if(APPLE AND NOT DEFINED ICU_ROOT)
+        find_program(BREW brew)
+        if(BREW)
+            execute_process(
+                COMMAND ${BREW} --prefix icu4c
+                OUTPUT_VARIABLE _brew_icu_prefix
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_QUIET
+            )
+            if(_brew_icu_prefix)
+                set(ICU_ROOT "${_brew_icu_prefix}")
+                message(STATUS "Homebrew ICU root: ${ICU_ROOT}")
+            endif()
+        endif()
+    endif()
+
     find_package(ZLIB REQUIRED)
     find_package(ICU REQUIRED COMPONENTS i18n uc data)
     find_package(BZip2 REQUIRED)
