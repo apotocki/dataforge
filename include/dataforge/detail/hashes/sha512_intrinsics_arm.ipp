@@ -78,8 +78,102 @@ inline bool sha512_runtime_has_sha512_accel()
 //   t0 = vsha512h2q_u64(t1, cd, ab)
 //   gh=ef; ef=cd+t1; cd=ab; ab=t0
 // --------------------------------------------------------------------------
+#define LOAD_SHUFFLE(m, k) \
+    m = vreinterpretq_u64_u8( \
+        MY_rev64_for_LE( \
+        LOAD_128_8(data + (k) * 16))); \
+
+#define NN(m0, m1, m4, m5, m7)
+#define SM(m0, m1, m4, m5, m7) m0 = vsha512su1q_u64(vsha512su0q_u64(m0, m1), m7, vextq_u64(m4, m5, 1));
+
+#define R2(k, m0,m1,m2,m3,m4,m5,m6,m7, a0,a1,a2,a3, OP) \
+    OP(m0, m1, m4, m5, m7) \
+    t = vaddq_u64(m0, vld1q_u64(k)); \
+    t = vaddq_u64(vextq_u64(t, t, 1), a3); \
+    t = vsha512hq_u64(t, vextq_u64(a2, a3, 1), vextq_u64(a1, a2, 1)); \
+    a3 = vsha512h2q_u64(t, a1, a0); \
+    a1 = vaddq_u64(a1, t);
+
+#define R8(k,     m0,m1,m2,m3,m4,m5,m6,m7, OP) \
+    R2 ( (k)+0*2, m0,m1,m2,m3,m4,m5,m6,m7, ab,cd,ef,gh, OP ) \
+    R2 ( (k)+1*2, m1,m2,m3,m4,m5,m6,m7,m0, gh,ab,cd,ef, OP ) \
+    R2 ( (k)+2*2, m2,m3,m4,m5,m6,m7,m0,m1, ef,gh,ab,cd, OP ) \
+    R2 ( (k)+3*2, m3,m4,m5,m6,m7,m0,m1,m2, cd,ef,gh,ab, OP )
+
+#define R16(k, m0,m1,m2,m3,m4,m5,m6,m7, OP) \
+    R8 ( (k)+0*2, m0,m1,m2,m3,m4,m5,m6,m7, OP ) \
+    R8 ( (k)+4*2, m4,m5,m6,m7,m0,m1,m2,m3, OP )
+
 inline void process_blocks_sha512_arm(uint64_t(&state)[8], const void* msg, size_t block_count)
 {
+#if 1
+    const uint8x16_t BSWAP = { 7,6,5,4,3,2,1,0, 15,14,13,12,11,10,9,8 };
+    const uint64_t* K = sha2_def_base<512>::K;
+    const auto* data = reinterpret_cast<const uint8_t*>(msg);
+
+    uint64x2_t t;
+
+    uint64x2_t ab = vld1q_u64(&state[0]);
+    uint64x2_t cd = vld1q_u64(&state[2]);
+    uint64x2_t ef = vld1q_u64(&state[4]);
+    uint64x2_t gh = vld1q_u64(&state[6]);
+    for (;;) {
+        const uint64x2_t ab0 = ab, cd0 = cd, ef0 = ef, gh0 = gh;
+
+        // Load and byte-swap 128-byte message block into 8 x uint64x2_t
+        uint64x2_t w[8];
+        for (int i = 0; i < 8; ++i)
+            w[i] = vreinterpretq_u64_u8(vqtbl1q_u8(vld1q_u8(data + 16*i), BSWAP));
+
+#if 1
+        R16 ( K, w[0], w[1], w[2], w[3], w[4], w[5], w[6], w[7], NN )
+        const uint64_t* k_ptr = K + 16;
+        for (int i = 0; i < 4; i++)
+        {
+            R16 ( k_ptr, w[0], w[1], w[2], w[3], w[4], w[5], w[6], w[7], SM )
+            k_ptr += 16;
+        }
+#else
+
+
+        // Rounds 0-15 (pairs 0-7): loaded words, no schedule update needed
+        for (int i = 0; i < 8; ++i) {
+            uint64x2_t t = vaddq_u64(w[i], vld1q_u64(K + 2*i));
+            uint64x2_t t = vaddq_u64(vextq_u64(wk, wk, 1), gh);
+            uint64x2_t t1 = vsha512hq_u64(t, vextq_u64(ef, gh, 1), vextq_u64(cd, ef, 1));
+            gh = vsha512h2q_u64(t1, cd, ab);
+            cd = vaddq_u64(cd, t1);
+        }
+
+        // Rounds 16-79 (pairs 8-39): rolling schedule update then two rounds
+        for (int i = 8; i < 40; ++i) {
+            const int s = i & 7;
+            w[s] = vsha512su1q_u64(
+                vsha512su0q_u64(w[s], w[(s + 1) & 7]),
+                vextq_u64(w[(s + 7) & 7], w[(s + 7) & 7], 1),
+                vextq_u64(w[(s + 4) & 7], w[(s + 5) & 7], 1)
+            );
+            uint64x2_t wk = vaddq_u64(w[s], vld1q_u64(K + 2*i));
+            uint64x2_t t1 = vsha512hq_u64(ef, gh, wk);
+            uint64x2_t t0 = vsha512h2q_u64(t1, cd, ab);
+            gh = ef; ef = vaddq_u64(cd, t1); cd = ab; ab = t0;
+        }
+#endif
+        ab = vaddq_u64(ab, ab0);
+        cd = vaddq_u64(cd, cd0);
+        ef = vaddq_u64(ef, ef0);
+        gh = vaddq_u64(gh, gh0);
+
+        if (--block_count == 0) break;
+        data += 128;
+    }
+
+    vst1q_u64(&state[0], ab);
+    vst1q_u64(&state[2], cd);
+    vst1q_u64(&state[4], ef);
+    vst1q_u64(&state[6], gh);
+
+#else
     const uint8x16_t BSWAP = { 7,6,5,4,3,2,1,0, 15,14,13,12,11,10,9,8 };
     const uint64_t* K = sha2_def_base<512>::K;
     const auto* data = reinterpret_cast<const uint8_t*>(msg);
@@ -99,10 +193,18 @@ inline void process_blocks_sha512_arm(uint64_t(&state)[8], const void* msg, size
 
         // Rounds 0-15 (pairs 0-7): loaded words, no schedule update needed
         for (int i = 0; i < 8; ++i) {
-            uint64x2_t wk = vaddq_u64(w[i], vld1q_u64(K + 2*i));
-            uint64x2_t t1 = vsha512hq_u64(ef, gh, wk);
+#if 0
+            uint64x2_t t = vaddq_u64(w[i], vld1q_u64(K + 2*i));
+            uint64x2_t t1 = vsha512hq_u64(ef, gh, t);
             uint64x2_t t0 = vsha512h2q_u64(t1, cd, ab);
             gh = ef; ef = vaddq_u64(cd, t1); cd = ab; ab = t0;
+#else
+            uint64x2_t t = vaddq_u64(w[i], vld1q_u64(K + 2*i));
+            uint64x2_t t = vaddq_u64(vextq_u64(wk, wk, 1), gh);
+            uint64x2_t t1 = vsha512hq_u64(t, vextq_u64(ef, gh, 1), vextq_u64(cd, ef, 1));
+            gh = vsha512h2q_u64(t1, cd, ab);
+            cd = vaddq_u64(cd, t1);
+#endif
         }
 
         // Rounds 16-79 (pairs 8-39): rolling schedule update then two rounds
@@ -132,6 +234,8 @@ inline void process_blocks_sha512_arm(uint64_t(&state)[8], const void* msg, size
     vst1q_u64(&state[2], cd);
     vst1q_u64(&state[4], ef);
     vst1q_u64(&state[6], gh);
+#endif
+
 }
 
 } // namespace dataforge::sha2_detail
