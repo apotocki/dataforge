@@ -111,7 +111,7 @@ inline void process_blocks_sha512_arm(uint64_t(&state)[8], const void* msg, size
     const uint64_t* K = sha2_def_base<512>::K;
     const auto* data = reinterpret_cast<const uint8_t*>(msg);
 
-    uint64x2_t t;
+    //uint64x2_t t;
 
     uint64x2_t ab = vld1q_u64(&state[0]);
     uint64x2_t cd = vld1q_u64(&state[2]);
@@ -137,12 +137,27 @@ inline void process_blocks_sha512_arm(uint64_t(&state)[8], const void* msg, size
             gh = ef; ef = vaddq_u64(cd, t); cd = ab; ab = t1;
         }
 
+        const uint64_t* k_var = K + 16;
+        for (int i = 0; i < 4; i++)
+        {
+            for (int i = 0; i < 8; ++i) {
+                w[i & 7] = vsha512su1q_u64(vsha512su0q_u64(w[i & 7], w[(i + 1) & 7]), w[(i + 7) & 7], vextq_u64(w[(i + 4) & 7], w[(i + 5) & 7], 1));
+                uint64x2_t t = vaddq_u64(w[i & 7], vld1q_u64(k_var + 2*i));
+                t = vaddq_u64(vextq_u64(t, t, 1), gh);
+                t = vsha512hq_u64(t, vextq_u64(ef, gh, 1), vextq_u64(cd, ef, 1));
+                uint64x2_t t1 = vsha512h2q_u64(t, cd, ab);
+                gh = ef; ef = vaddq_u64(cd, t); cd = ab; ab = t1;
+            }
+            k_var += 16;
+        }
+        /*
         const uint64_t* k_ptr = K + 16;
         for (int i = 0; i < 4; i++)
         {
             R16 ( k_ptr, w[0], w[1], w[2], w[3], w[4], w[5], w[6], w[7], SM )
             k_ptr += 16;
         }
+        */
 #else
 
 
