@@ -334,15 +334,14 @@ inline void sha2_impl<Type>::process_blocks(const void* msg, size_t block_count)
 
 #elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_X86
         // Forced x86: pick the best statically-available ISA level.
-        // Use DATAFORGE_ACCEL_X86_USE_AVX512 (profile flag) rather than __AVX512F__
-        // (compiler-global TU flag) — the AVX-512 function is guarded by
-        // DATAFORGE_AVX512_TARGET so it compiles correctly even without global flags.
+        // Use profile flags rather than compiler-global TU macros (__AVX512F__,
+        // __SSE4_1__) — intrinsic functions are self-contained via their
+        // DATAFORGE_*_TARGET attributes and compile correctly without global flags.
+        // Any x86 profile (X86_SHA_NI or X86_AVX512) implies at least SSE4.1.
 #if DATAFORGE_ACCEL_X86_USE_AVX512 && DATAFORGE_ACCEL_CAN_COMPILE_X86_AVX512
         process_blocks_sha512_x86_avx512(H, msg, block_count);
-#elif defined(__SSE4_1__)
-        process_blocks_sha512_x86_sse41(H, msg, block_count);
 #else
-        process_blocks_scalar(H, msg, block_count);
+        process_blocks_sha512_x86_sse41(H, msg, block_count);
 #endif
 
 #elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_ARM
