@@ -19,11 +19,14 @@
 //             into a shift-or pair; selected on CPUs without AVX-512 (e.g.
 //             Raptor Lake desktop with both P- and E-cores active).
 //
-// Both paths share the same merged schedule+compression loop structure:
-//   - w[16] circular buffer (was w[40]) — 256 bytes vs 640 bytes
-//   - no wk[80] intermediate array    — 0 bytes   vs 640 bytes
-//   - 4 schedule vectors computed then immediately consumed as 8 rounds
-// This eliminates the two-pass store→load round-trip that cost ~30% vs OpenSSL.
+// Structure (same for both backends):
+//   Pass 1 — message schedule: w[40] linear array, sequential writes j=0..39.
+//             Keeping the linear array (rather than a circular buffer) lets the
+//             compiler hold w[j-1..j-8] in XMM registers across iterations.
+//   Pass 2 — compression: 8 rounds per outer step, W[t]+K[t] folded inline
+//             from w[t/2] + K[t/2] (one vector add per pair of rounds).
+//             No intermediate wk[80] array — eliminates 640 bytes of stack
+//             store-then-load traffic that was the main cost vs OpenSSL.
 
 namespace dataforge::sha2_detail {
 
@@ -98,7 +101,8 @@ __m128i sse41_sha512_sigma1(__m128i x)
 // are emitted between rounds — the compiler assigns each name to a fixed
 // physical register for the whole 80-round sequence.
 //
-// wkval is the precomputed W[t]+K[t] scalar for this round.
+// wkval is the W[t]+K[t] scalar for this round, extracted from the XMM vector
+// inline (no intermediate array store).
 // ---------------------------------------------------------------------------
 #define DATAFORGE_SHA512_ROUND(a,b,c,d,e,f,g,h,wkval)                    \
 do {                                                                       \
@@ -109,11 +113,9 @@ do {                                                                       \
     (h) = _T1 + _S0 + ((a & b) ^ (a & c) ^ (b & c));                     \
 } while(0)
 
-// Two consecutive rounds from the low and high 64-bit lanes of one XMM vector
-// holding {W[t]+K[t], W[t+1]+K[t+1]}.  The 16 argument names encode the
-// compile-time state-vector rotation for rounds t and t+1 respectively.
-// _mm_cvtsi128_si64 extracts the low lane (SSE2); _mm_extract_epi64 the high
-// lane (SSE4.1) — both are no-op moves on all modern micro-architectures.
+// Two consecutive rounds from the low and high 64-bit lanes of one XMM vector.
+// The 16 argument names encode the compile-time state-vector rotation.
+// _mm_cvtsi128_si64 (SSE2) extracts low lane; _mm_extract_epi64 (SSE4.1) high.
 #define DATAFORGE_SHA512_ROUNDS2(a0,b0,c0,d0,e0,f0,g0,h0,                \
                                   a1,b1,c1,d1,e1,f1,g1,h1, vec)          \
 do {                                                                       \
@@ -123,10 +125,10 @@ do {                                                                       \
         (uint64_t)_mm_extract_epi64(vec, 1));                             \
 } while(0)
 
-// Eight rounds from four consecutive W+K vectors v0..v3, starting with the
-// state rotation appropriate when round index t is a multiple of 8.
-// Each ROUNDS2 call advances t by 2; four calls return the rotation to
-// (a,b,c,d,e,f,g,h), so the same sequence repeats every 8 rounds.
+// Eight rounds from four W+K vectors v0..v3.  The round index entering this
+// macro is always a multiple of 8 (both initial blocks and the expansion loop
+// step by 4 vectors = 8 rounds), so the rotation always starts at (a,...,h)
+// and returns to (a,...,h) after the four ROUNDS2 calls.
 #define DATAFORGE_SHA512_8ROUNDS(v0, v1, v2, v3)                          \
 do {                                                                       \
     DATAFORGE_SHA512_ROUNDS2(a,b,c,d,e,f,g,h, h,a,b,c,d,e,f,g, v0);     \
@@ -136,12 +138,7 @@ do {                                                                       \
 } while(0)
 
 // ---------------------------------------------------------------------------
-// AVX-512VL backend: merged schedule+compression, circular w[16] buffer.
-//
-// w[j] holds {W[2j], W[2j+1]}.  For j >= 8 (rounds 16-79) the recurrence is:
-//   w[j] = sigma1(w[j-1]) + alignr(w[j-3],w[j-4],8) + sigma0(alignr(w[j-7],w[j-8],8)) + w[j-8]
-// We compute 4 vectors per outer-loop iteration and immediately fold K and
-// run 8 compression rounds, so no intermediate wk[] buffer is needed.
+// AVX-512VL backend: SIMD message schedule + inline-folded compression.
 // ---------------------------------------------------------------------------
 #if defined(_MSC_VER)
 #pragma warning(push)
@@ -156,83 +153,35 @@ inline void process_blocks_sha512_x86_avx512(uint64_t(&state)[8], const void* ms
     const auto* data = reinterpret_cast<const uint8_t*>(msg);
     const auto* K    = reinterpret_cast<const __m128i*>(sha2_def_base<512>::K);
 
-    // Circular buffer: 16 XMM vectors = 32 words.  A window of [j-8, j-1]
-    // is always available; slot j&15 is safe to overwrite once j >= 16
-    // (its last read was at j-8, which is already past).
-    __m128i w[16];
-
+    // Linear w[40]: two 64-bit words per XMM vector (W[2j], W[2j+1]).
+    // Linear layout lets the compiler keep w[j-1..j-8] in XMM registers
+    // across iterations of the schedule loop.
+    __m128i w[40];
     for (;;) {
-        // Load and byte-swap 16 words (8 XMM vectors = one SHA-512 block).
+        // --- Pass 1: message schedule ---
         for (int i = 0; i < 8; ++i)
             w[i] = _mm_shuffle_epi8(
                 _mm_loadu_si128(reinterpret_cast<const __m128i*>(data + 16 * i)),
                 SHUF_MASK);
 
+        for (int j = 8; j < 40; ++j) {
+            const __m128i s0in = _mm_alignr_epi8(w[j - 7], w[j - 8], 8); // {W[t-15], W[t-14]}
+            const __m128i wm7  = _mm_alignr_epi8(w[j - 3], w[j - 4], 8); // {W[t-7],  W[t-6]}
+            __m128i v = _mm_add_epi64(w[j - 8], avx512_sha512_sigma0(s0in));
+            v = _mm_add_epi64(v, wm7);
+            v = _mm_add_epi64(v, avx512_sha512_sigma1(w[j - 1]));
+            w[j] = v;
+        }
+
+        // --- Pass 2: compression (W+K folded inline, no wk[] array) ---
         uint64_t a = state[0], b = state[1], c = state[2], d = state[3];
         uint64_t e = state[4], f = state[5], g = state[6], h = state[7];
 
-        // Rounds 0-7 (j=0..3): fold K into loaded data, then 8 rounds.
-        {
-            __m128i v0 = _mm_add_epi64(w[0], K[0]);
-            __m128i v1 = _mm_add_epi64(w[1], K[1]);
-            __m128i v2 = _mm_add_epi64(w[2], K[2]);
-            __m128i v3 = _mm_add_epi64(w[3], K[3]);
-            DATAFORGE_SHA512_8ROUNDS(v0, v1, v2, v3);
-        }
-        // Rounds 8-15 (j=4..7): same, second half of the initial 16 words.
-        {
-            __m128i v0 = _mm_add_epi64(w[4], K[4]);
-            __m128i v1 = _mm_add_epi64(w[5], K[5]);
-            __m128i v2 = _mm_add_epi64(w[6], K[6]);
-            __m128i v3 = _mm_add_epi64(w[7], K[7]);
-            DATAFORGE_SHA512_8ROUNDS(v0, v1, v2, v3);
-        }
-
-        // Rounds 16-79 (j=8..39, step 4): expand 4 vectors, fold K, run 8 rounds.
-        // The outer step is always a multiple of 4, so the round index entering
-        // each 8ROUNDS block is always a multiple of 8 — no rotation offset needed.
-        for (int j = 8; j < 40; j += 4) {
-            // j+0
-            {
-                const __m128i s0 = _mm_alignr_epi8(w[(j-7)&15], w[(j-8)&15], 8);
-                const __m128i s7 = _mm_alignr_epi8(w[(j-3)&15], w[(j-4)&15], 8);
-                __m128i v = _mm_add_epi64(w[(j-8)&15], avx512_sha512_sigma0(s0));
-                v = _mm_add_epi64(v, s7);
-                v = _mm_add_epi64(v, avx512_sha512_sigma1(w[(j-1)&15]));
-                w[j & 15] = v;
-            }
-            // j+1
-            {
-                const __m128i s0 = _mm_alignr_epi8(w[(j-6)&15], w[(j-7)&15], 8);
-                const __m128i s7 = _mm_alignr_epi8(w[(j-2)&15], w[(j-3)&15], 8);
-                __m128i v = _mm_add_epi64(w[(j-7)&15], avx512_sha512_sigma0(s0));
-                v = _mm_add_epi64(v, s7);
-                v = _mm_add_epi64(v, avx512_sha512_sigma1(w[j & 15]));
-                w[(j+1) & 15] = v;
-            }
-            // j+2
-            {
-                const __m128i s0 = _mm_alignr_epi8(w[(j-5)&15], w[(j-6)&15], 8);
-                const __m128i s7 = _mm_alignr_epi8(w[(j-1)&15], w[(j-2)&15], 8);
-                __m128i v = _mm_add_epi64(w[(j-6)&15], avx512_sha512_sigma0(s0));
-                v = _mm_add_epi64(v, s7);
-                v = _mm_add_epi64(v, avx512_sha512_sigma1(w[(j+1) & 15]));
-                w[(j+2) & 15] = v;
-            }
-            // j+3
-            {
-                const __m128i s0 = _mm_alignr_epi8(w[(j-4)&15], w[(j-5)&15], 8);
-                const __m128i s7 = _mm_alignr_epi8(w[j & 15],   w[(j-1)&15], 8);
-                __m128i v = _mm_add_epi64(w[(j-5)&15], avx512_sha512_sigma0(s0));
-                v = _mm_add_epi64(v, s7);
-                v = _mm_add_epi64(v, avx512_sha512_sigma1(w[(j+2) & 15]));
-                w[(j+3) & 15] = v;
-            }
-
-            __m128i v0 = _mm_add_epi64(w[j       & 15], K[j  ]);
-            __m128i v1 = _mm_add_epi64(w[(j+1)   & 15], K[j+1]);
-            __m128i v2 = _mm_add_epi64(w[(j+2)   & 15], K[j+2]);
-            __m128i v3 = _mm_add_epi64(w[(j+3)   & 15], K[j+3]);
+        for (int j = 0; j < 40; j += 4) {
+            __m128i v0 = _mm_add_epi64(w[j  ], K[j  ]);
+            __m128i v1 = _mm_add_epi64(w[j+1], K[j+1]);
+            __m128i v2 = _mm_add_epi64(w[j+2], K[j+2]);
+            __m128i v3 = _mm_add_epi64(w[j+3], K[j+3]);
             DATAFORGE_SHA512_8ROUNDS(v0, v1, v2, v3);
         }
 
@@ -260,70 +209,30 @@ inline void process_blocks_sha512_x86_sse41(uint64_t(&state)[8], const void* msg
     const auto* data = reinterpret_cast<const uint8_t*>(msg);
     const auto* K    = reinterpret_cast<const __m128i*>(sha2_def_base<512>::K);
 
-    __m128i w[16];
-
+    __m128i w[40];
     for (;;) {
         for (int i = 0; i < 8; ++i)
             w[i] = _mm_shuffle_epi8(
                 _mm_loadu_si128(reinterpret_cast<const __m128i*>(data + 16 * i)),
                 SHUF_MASK);
 
+        for (int j = 8; j < 40; ++j) {
+            const __m128i s0in = _mm_alignr_epi8(w[j - 7], w[j - 8], 8);
+            const __m128i wm7  = _mm_alignr_epi8(w[j - 3], w[j - 4], 8);
+            __m128i v = _mm_add_epi64(w[j - 8], sse41_sha512_sigma0(s0in));
+            v = _mm_add_epi64(v, wm7);
+            v = _mm_add_epi64(v, sse41_sha512_sigma1(w[j - 1]));
+            w[j] = v;
+        }
+
         uint64_t a = state[0], b = state[1], c = state[2], d = state[3];
         uint64_t e = state[4], f = state[5], g = state[6], h = state[7];
 
-        {
-            __m128i v0 = _mm_add_epi64(w[0], K[0]);
-            __m128i v1 = _mm_add_epi64(w[1], K[1]);
-            __m128i v2 = _mm_add_epi64(w[2], K[2]);
-            __m128i v3 = _mm_add_epi64(w[3], K[3]);
-            DATAFORGE_SHA512_8ROUNDS(v0, v1, v2, v3);
-        }
-        {
-            __m128i v0 = _mm_add_epi64(w[4], K[4]);
-            __m128i v1 = _mm_add_epi64(w[5], K[5]);
-            __m128i v2 = _mm_add_epi64(w[6], K[6]);
-            __m128i v3 = _mm_add_epi64(w[7], K[7]);
-            DATAFORGE_SHA512_8ROUNDS(v0, v1, v2, v3);
-        }
-
-        for (int j = 8; j < 40; j += 4) {
-            {
-                const __m128i s0 = _mm_alignr_epi8(w[(j-7)&15], w[(j-8)&15], 8);
-                const __m128i s7 = _mm_alignr_epi8(w[(j-3)&15], w[(j-4)&15], 8);
-                __m128i v = _mm_add_epi64(w[(j-8)&15], sse41_sha512_sigma0(s0));
-                v = _mm_add_epi64(v, s7);
-                v = _mm_add_epi64(v, sse41_sha512_sigma1(w[(j-1)&15]));
-                w[j & 15] = v;
-            }
-            {
-                const __m128i s0 = _mm_alignr_epi8(w[(j-6)&15], w[(j-7)&15], 8);
-                const __m128i s7 = _mm_alignr_epi8(w[(j-2)&15], w[(j-3)&15], 8);
-                __m128i v = _mm_add_epi64(w[(j-7)&15], sse41_sha512_sigma0(s0));
-                v = _mm_add_epi64(v, s7);
-                v = _mm_add_epi64(v, sse41_sha512_sigma1(w[j & 15]));
-                w[(j+1) & 15] = v;
-            }
-            {
-                const __m128i s0 = _mm_alignr_epi8(w[(j-5)&15], w[(j-6)&15], 8);
-                const __m128i s7 = _mm_alignr_epi8(w[(j-1)&15], w[(j-2)&15], 8);
-                __m128i v = _mm_add_epi64(w[(j-6)&15], sse41_sha512_sigma0(s0));
-                v = _mm_add_epi64(v, s7);
-                v = _mm_add_epi64(v, sse41_sha512_sigma1(w[(j+1) & 15]));
-                w[(j+2) & 15] = v;
-            }
-            {
-                const __m128i s0 = _mm_alignr_epi8(w[(j-4)&15], w[(j-5)&15], 8);
-                const __m128i s7 = _mm_alignr_epi8(w[j & 15],   w[(j-1)&15], 8);
-                __m128i v = _mm_add_epi64(w[(j-5)&15], sse41_sha512_sigma0(s0));
-                v = _mm_add_epi64(v, s7);
-                v = _mm_add_epi64(v, sse41_sha512_sigma1(w[(j+2) & 15]));
-                w[(j+3) & 15] = v;
-            }
-
-            __m128i v0 = _mm_add_epi64(w[j       & 15], K[j  ]);
-            __m128i v1 = _mm_add_epi64(w[(j+1)   & 15], K[j+1]);
-            __m128i v2 = _mm_add_epi64(w[(j+2)   & 15], K[j+2]);
-            __m128i v3 = _mm_add_epi64(w[(j+3)   & 15], K[j+3]);
+        for (int j = 0; j < 40; j += 4) {
+            __m128i v0 = _mm_add_epi64(w[j  ], K[j  ]);
+            __m128i v1 = _mm_add_epi64(w[j+1], K[j+1]);
+            __m128i v2 = _mm_add_epi64(w[j+2], K[j+2]);
+            __m128i v3 = _mm_add_epi64(w[j+3], K[j+3]);
             DATAFORGE_SHA512_8ROUNDS(v0, v1, v2, v3);
         }
 
