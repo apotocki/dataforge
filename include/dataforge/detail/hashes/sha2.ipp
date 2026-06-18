@@ -275,8 +275,12 @@ inline void sha2_impl<Type>::process_blocks(const void* msg, size_t block_count)
         // only emit code the *compilation target* can encode — that compile-time
         // guarantee is what DATAFORGE_ACCEL_CAN_COMPILE_X86_SHA reflects, and a
         // forced-x86 build on a non-x86 target is downgraded to scalar in sha2.hpp.
-        // AVX-512 is used only with DATAFORGE_PROFILE_X86_AVX512 AND the build targets AVX-512.
-#   if DATAFORGE_ACCEL_X86_USE_AVX512 && defined(__AVX512F__) && defined(__AVX512VL__)
+        // AVX-512 path is taken when the X86_AVX512 profile is active and the
+        // compiler can emit AVX-512 (via per-function target attributes on GCC/Clang,
+        // or globally with /arch:AVX512 on MSVC). Do NOT use __AVX512F__ here —
+        // that macro is only defined when the whole TU is compiled with AVX-512 flags,
+        // but the AVX-512 functions are self-contained via DATAFORGE_AVX512_TARGET.
+#   if DATAFORGE_ACCEL_X86_USE_AVX512 && DATAFORGE_ACCEL_CAN_COMPILE_X86_AVX512
         process_blocks_sha256_x86_avx512(H, msg, block_count);
 #   else
         process_blocks_sha256_x86(H, msg, block_count);
@@ -330,7 +334,10 @@ inline void sha2_impl<Type>::process_blocks(const void* msg, size_t block_count)
 
 #elif DATAFORGE_ACCEL_IMPL == DATAFORGE_ACCEL_X86
         // Forced x86: pick the best statically-available ISA level.
-#if defined(__AVX512F__) && defined(__AVX512VL__)
+        // Use DATAFORGE_ACCEL_X86_USE_AVX512 (profile flag) rather than __AVX512F__
+        // (compiler-global TU flag) — the AVX-512 function is guarded by
+        // DATAFORGE_AVX512_TARGET so it compiles correctly even without global flags.
+#if DATAFORGE_ACCEL_X86_USE_AVX512 && DATAFORGE_ACCEL_CAN_COMPILE_X86_AVX512
         process_blocks_sha512_x86_avx512(H, msg, block_count);
 #elif defined(__SSE4_1__)
         process_blocks_sha512_x86_sse41(H, msg, block_count);
