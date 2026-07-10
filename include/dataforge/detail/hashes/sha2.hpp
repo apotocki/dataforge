@@ -169,6 +169,7 @@ struct sha2_impl : sha2_impl_base<Type>
     static constexpr size_t state_size = 8;
 
     sha2_impl();
+    explicit sha2_impl(word_type const* init_values);
 
     void reset();
 
