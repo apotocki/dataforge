@@ -122,7 +122,7 @@ public:
             qrk.compression_level, /* compression level; 0 == default */
             0,   /* autoflush */
             0,   /* favor decompression speed */
-            { 0, 0, 0 },  /* reserved, must be set to 0 */
+            // the rest zero: reserved[3] before lz4 1.11, nbWorkers, reserved1 and reserved0 since
         };
         
         size_t bsz = qrk.buffer_size;
