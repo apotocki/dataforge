@@ -7,6 +7,7 @@
 ==============================================================================*/
 #pragma once
 
+#include <climits>
 #include <type_traits>
 #include <concepts>
 #include <cstdint>

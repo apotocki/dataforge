@@ -7,6 +7,7 @@
 ==============================================================================*/
 #pragma once
 
+#include <climits>
 #include <cstring>
 #include <stdexcept>
 #include <type_traits>

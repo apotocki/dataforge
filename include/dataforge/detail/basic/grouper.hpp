@@ -7,6 +7,8 @@
 ==============================================================================*/
 #pragma once
 
+#include <climits>
+
 namespace dataforge {
 
 // that's not a fish

@@ -7,6 +7,7 @@
 ==============================================================================*/
 #pragma once
 
+#include <climits>
 #include <cassert>
 #include "../detail/quarks.hpp"
 
