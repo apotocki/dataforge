@@ -6,6 +6,7 @@
     http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
 
+#include <climits>
 #include "../utility/data_ops.hpp"
 
 namespace dataforge::rc2_detail {

@@ -9,6 +9,7 @@
 #pragma once
 
 #include <cassert>
+#include <cstddef>
 #include <stdexcept>
 #include <utility>
 #include <type_traits>
@@ -72,7 +73,7 @@ struct compound_qrk : cvt_qrk<void>
     compound_qrk() = default;
 
     template <typename SArgT>
-    compound_qrk(SArgT&& s, nullptr_t)
+    compound_qrk(SArgT&& s, std::nullptr_t)
         : start{ std::forward<SArgT>(s) }
     {}
 

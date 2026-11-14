@@ -183,8 +183,13 @@ inline const sha2_impl_base<sha2_type::sha512_256>::word_type sha2_impl_base<sha
 
 template <sha2_type Type>
 sha2_impl<Type>::sha2_impl()
+    : sha2_impl(sha2_impl::init_values)
+{}
+
+template <sha2_type Type>
+sha2_impl<Type>::sha2_impl(word_type const* init_values)
 {
-    std::copy(sha2_impl::init_values, sha2_impl::init_values + 8, H);
+    std::copy(init_values, init_values + state_size, H);
 }
 
 template <sha2_type Type>

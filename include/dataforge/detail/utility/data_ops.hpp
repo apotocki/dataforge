@@ -7,6 +7,7 @@
 ==============================================================================*/
 #pragma once
 
+#include <climits>
 #include <bit>
 #include <cstring>
 #include <limits>
