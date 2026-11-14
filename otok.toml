@@ -1,0 +1,40 @@
+# The native libraries of dataforge's tests on Windows, built by otok into Otok/<library>/ (include/, lib/<arch>/ for
+# Release, debug/lib/<arch>/ for Debug) instead of vcpkg. Directory.Build.props and Directory.Build.targets give them to
+# every project through Otok/otok.props and Otok/otok.targets, and each project names the products it links in
+# OtokProducts; when dataforge is a module of a solution with an otok.props of its own (PotoHEX), that solution's Otok/
+# is used instead. Install with `otok install` in this directory. The library itself is header-only and needs nothing.
+[otok]
+format = 1
+
+[windows]
+build-on = ["windows/msvc"]
+architectures = { windows = ["x86_64"] }
+configurations = ["debug", "release"]
+linkage = "static"
+# stdcpplatest of the projects
+cxx-standard = 23
+
+# dataforge_tests: the zlib, bzip2, lz4 and lzma codecs, ICU's converters, gtest (its own main in tests/tests.cpp)
+[deps.zlib]
+recipe = "apotocki/zlib"
+version = "~> 1.3"
+
+[deps.bzip2]
+recipe = "apotocki/bzip2"
+version = "~> 1.0"
+
+[deps.lz4]
+recipe = "apotocki/lz4"
+version = "~> 1.11"
+
+[deps.lzma]
+recipe = "apotocki/lzma"
+version = "~> 5.8"
+
+[deps.icu4c]
+recipe = "apotocki/icu4c"
+version = "~> 79.1"
+
+[deps.googletest]
+recipe = "apotocki/googletest"
+version = "~> 1.18"

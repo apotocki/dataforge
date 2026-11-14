@@ -25,6 +25,10 @@
     <RootNamespace>dataforgetest</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
+  <PropertyGroup>
+    <!-- the libraries of otok.toml (Otok/otok.targets, or the solution's above), static: no DLLs on the PATH -->
+    <OtokProducts>ZLIB;BZip2;LZ4;LZMA;ICU;GTest</OtokProducts>
+  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -100,12 +104,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>icuucd.lib;zlibd.lib;bz2d.lib;lzma.lib;lz4d.lib;gtest.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PreBuildEvent>
-      <Command>if not defined VCPKG_ROOT (echo ERROR: VCPKG_ROOT is not set. &amp; echo INFO: Please set VCPKG_ROOT to your vcpkg installation path. &amp; exit 1)
-"$(VCPKG_ROOT)\vcpkg.exe" install --triplet x86-windows</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -125,12 +124,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>icuuc.lib;zlib.lib;bz2.lib;lzma.lib;lz4.lib;gtest.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PreBuildEvent>
-      <Command>if not defined VCPKG_ROOT (echo ERROR: VCPKG_ROOT is not set. &amp; echo INFO: Please set VCPKG_ROOT to your vcpkg installation path. &amp; exit 1)
-"$(VCPKG_ROOT)\vcpkg.exe" install --triplet x86-windows</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -146,13 +140,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>icuucd.lib;zd.lib;bz2d.lib;lzma.lib;lz4d.lib;gtest.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
-    <PreBuildEvent>
-      <Command>if not defined VCPKG_ROOT (echo ERROR: VCPKG_ROOT is not set. &amp; echo INFO: Please set VCPKG_ROOT to your vcpkg installation path. &amp; exit 1)
-"$(VCPKG_ROOT)\vcpkg.exe" install</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -172,13 +160,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>icuuc.lib;z.lib;bz2.lib;lzma.lib;lz4.lib;gtest.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
-    <PreBuildEvent>
-      <Command>if not defined VCPKG_ROOT (echo ERROR: VCPKG_ROOT is not set. &amp; echo INFO: Please set VCPKG_ROOT to your vcpkg installation path. &amp; exit 1)
-"$(VCPKG_ROOT)\vcpkg.exe" install</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\examples\aes.cpp">

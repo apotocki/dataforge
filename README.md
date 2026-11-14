@@ -114,28 +114,21 @@ DataForge combines multiple types of data transformations in one consistent fram
 ## Installation for Running Tests
 
 The library itself is **header-only** — nothing needs to be built for use in your projects.  
-However, the test suite depends on external libraries (**zlib, icu, bzip2, lz4, liblzma, gtest**), which are managed via [vcpkg](https://github.com/microsoft/vcpkg).
+However, the test suite depends on external libraries (**zlib, icu, bzip2, lz4, liblzma, gtest**).
 
-### Steps to build and run tests:
-1. **Install vcpkg** anywhere on your system (if not already installed).
-2. **Set the environment variable** `VCPKG_ROOT` to the location of your vcpkg installation.  
-   - Example (Windows PowerShell):
-     ```powershell
-     setx VCPKG_ROOT "C:\dev\vcpkg"
-     ```
-3. Open the Visual Studio solution for tests and build it.  
-   - On the first build:
-     - The project will automatically:
-       1. Check that `VCPKG_ROOT` is set.
-       2. Run:
-          ```powershell
-          $(VCPKG_ROOT)\vcpkg.exe install
-          ```
-          installing all required dependencies from `vcpkg.json` into a local `vcpkg_installed` folder.
-       3. Configure `INCLUDE` and `LIB` paths to use these locally installed dependencies.
-4. Run the tests from Visual Studio.
+### Windows (Visual Studio)
 
-**No global vcpkg integration (`vcpkg integrate install`) is required** — everything is local to the repository.
+The libraries are built from source by [otok](https://github.com/otok-dev/otok) as `otok.toml` and `otok.lock` describe, into a local `Otok/` folder:
+
+1. Install otok (`scoop bucket add otok https://github.com/otok-dev/scoop-bucket`, `scoop install otok`, or the zip of a release).
+2. Run `otok install` in the repository root (the first run builds the libraries, later ones take them from otok's cache).
+3. Open `dataforge.slnx`, build the `x64` platform (Debug or Release) and run `dataforge_tests`.
+
+The libraries are static: no DLLs need to be on the `PATH`.
+
+### Linux and macOS
+
+The CMake build (`build.sh`) uses the system's packages: `zlib1g-dev libicu-dev libbz2-dev liblz4-dev liblzma-dev libgtest-dev` on Ubuntu, `icu4c lz4 xz googletest` from Homebrew on macOS.
 
 ## Hardware Acceleration
 

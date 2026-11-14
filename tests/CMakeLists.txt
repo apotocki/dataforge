@@ -32,100 +32,75 @@ if (DATAFORGE_TEST_SOURCES STREQUAL "")
   message(FATAL_ERROR "No test sources found under ${CMAKE_CURRENT_SOURCE_DIR}")
 endif()
 
-# If we are using vcpkg, rely on CMake config packages
-if(DEFINED ENV{VCPKG_ROOT})
-    message(STATUS "Using vcpkg from: $ENV{VCPKG_ROOT}")
-    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
+# The libraries of the system (zlib1g-dev, libicu-dev, libbz2-dev, liblz4-dev, liblzma-dev, libgtest-dev; Homebrew on
+# macOS); on Windows the MSBuild solution takes them from otok (otok.toml)
 
-    find_package(ZLIB REQUIRED)
-    find_package(ICU REQUIRED COMPONENTS i18n uc data)
-    find_package(BZip2 REQUIRED)
-    find_package(LZ4 CONFIG REQUIRED)
-    find_package(LibLZMA REQUIRED)
-    find_package(GTest CONFIG REQUIRED)
-
-    set(DEPS
-        ZLIB::ZLIB
-        ICU::i18n
-        ICU::uc
-        ICU::data
-        BZip2::BZip2
-        LZ4::lz4
-        LibLZMA::LibLZMA
-        GTest::gtest
-        GTest::gtest_main
-    )
-
-else()
-    message(STATUS "No vcpkg detected. Using system packages.")
-
-    # On macOS, Homebrew installs icu4c as keg-only (no symlinks into the
-    # default prefix), so CMake's FindICU won't see it unless we point it
-    # at the cellar. Ask brew for the actual prefix and set ICU_ROOT so that
-    # FindICU picks up the right headers and libraries.
-    if(APPLE)
-        find_program(BREW brew)
-        if(BREW)
-            execute_process(
-                COMMAND ${BREW} --prefix icu4c
-                OUTPUT_VARIABLE _brew_icu_prefix
-                OUTPUT_STRIP_TRAILING_WHITESPACE
-                ERROR_QUIET
-            )
-            if(_brew_icu_prefix)
-                message(STATUS "Homebrew ICU root: ${_brew_icu_prefix}")
-                # Prepend to CMAKE_PREFIX_PATH so find_package searches here first.
-                list(PREPEND CMAKE_PREFIX_PATH "${_brew_icu_prefix}")
-                # Explicitly override the cached FindICU internal variables so that
-                # a previous run that picked up Xcode SDK ICU does not win.
-                set(ICU_INCLUDE_DIR "${_brew_icu_prefix}/include"
-                    CACHE PATH "ICU include directory (Homebrew)" FORCE)
-            endif()
+# On macOS, Homebrew installs icu4c as keg-only (no symlinks into the
+# default prefix), so CMake's FindICU won't see it unless we point it
+# at the cellar. Ask brew for the actual prefix and set ICU_ROOT so that
+# FindICU picks up the right headers and libraries.
+if(APPLE)
+    find_program(BREW brew)
+    if(BREW)
+        execute_process(
+            COMMAND ${BREW} --prefix icu4c
+            OUTPUT_VARIABLE _brew_icu_prefix
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET
+        )
+        if(_brew_icu_prefix)
+            message(STATUS "Homebrew ICU root: ${_brew_icu_prefix}")
+            # Prepend to CMAKE_PREFIX_PATH so find_package searches here first.
+            list(PREPEND CMAKE_PREFIX_PATH "${_brew_icu_prefix}")
+            # Explicitly override the cached FindICU internal variables so that
+            # a previous run that picked up Xcode SDK ICU does not win.
+            set(ICU_INCLUDE_DIR "${_brew_icu_prefix}/include"
+                CACHE PATH "ICU include directory (Homebrew)" FORCE)
         endif()
     endif()
-
-    find_package(ZLIB REQUIRED)
-    find_package(ICU REQUIRED COMPONENTS i18n uc data)
-    # FindICU.cmake does not always populate INTERFACE_INCLUDE_DIRECTORIES on
-    # its imported targets when the package lives outside the default prefix
-    # (e.g. Homebrew keg-only on macOS). Use include_directories() as a
-    # reliable fallback — ICU_INCLUDE_DIRS is always set by FindICU.
-    if(ICU_INCLUDE_DIRS)
-        include_directories(${ICU_INCLUDE_DIRS})
-    endif()
-    find_package(BZip2 REQUIRED)
-
-    # LZ4 fallback search
-    find_path(LZ4_INCLUDE_DIR NAMES lz4.h)
-    find_library(LZ4_LIBRARY NAMES lz4)
-    if(NOT LZ4_INCLUDE_DIR OR NOT LZ4_LIBRARY)
-        message(FATAL_ERROR "LZ4 not found. Install liblz4-dev.")
-    endif()
-
-    # LibLZMA fallback search
-    find_path(LIBLZMA_INCLUDE_DIR NAMES lzma.h)
-    find_library(LIBLZMA_LIBRARY NAMES lzma)
-    if(NOT LIBLZMA_INCLUDE_DIR OR NOT LIBLZMA_LIBRARY)
-        message(FATAL_ERROR "LibLZMA not found. Install liblzma-dev.")
-    endif()
-
-    # GTest fallback search
-    find_package(GTest REQUIRED)
-
-    set(DEPS
-        ZLIB::ZLIB
-        ICU::i18n
-        ICU::uc
-        ICU::data
-        BZip2::BZip2
-        ${LZ4_LIBRARY}
-        ${LIBLZMA_LIBRARY}
-        GTest::GTest
-        GTest::Main
-    )
-
-    include_directories(${LZ4_INCLUDE_DIR} ${LIBLZMA_INCLUDE_DIR})
 endif()
+
+find_package(ZLIB REQUIRED)
+find_package(ICU REQUIRED COMPONENTS i18n uc data)
+# FindICU.cmake does not always populate INTERFACE_INCLUDE_DIRECTORIES on
+# its imported targets when the package lives outside the default prefix
+# (e.g. Homebrew keg-only on macOS). Use include_directories() as a
+# reliable fallback — ICU_INCLUDE_DIRS is always set by FindICU.
+if(ICU_INCLUDE_DIRS)
+    include_directories(${ICU_INCLUDE_DIRS})
+endif()
+find_package(BZip2 REQUIRED)
+
+# LZ4 fallback search
+find_path(LZ4_INCLUDE_DIR NAMES lz4.h)
+find_library(LZ4_LIBRARY NAMES lz4)
+if(NOT LZ4_INCLUDE_DIR OR NOT LZ4_LIBRARY)
+    message(FATAL_ERROR "LZ4 not found. Install liblz4-dev.")
+endif()
+
+# LibLZMA fallback search
+find_path(LIBLZMA_INCLUDE_DIR NAMES lzma.h)
+find_library(LIBLZMA_LIBRARY NAMES lzma)
+if(NOT LIBLZMA_INCLUDE_DIR OR NOT LIBLZMA_LIBRARY)
+    message(FATAL_ERROR "LibLZMA not found. Install liblzma-dev.")
+endif()
+
+# GTest fallback search
+find_package(GTest REQUIRED)
+
+set(DEPS
+    ZLIB::ZLIB
+    ICU::i18n
+    ICU::uc
+    ICU::data
+    BZip2::BZip2
+    ${LZ4_LIBRARY}
+    ${LIBLZMA_LIBRARY}
+    GTest::GTest
+    GTest::Main
+)
+
+include_directories(${LZ4_INCLUDE_DIR} ${LIBLZMA_INCLUDE_DIR})
 
 # ---------------------------------------------------------------------------
 # Helper: build one test binary for a given acceleration profile.
